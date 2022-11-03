@@ -1,13 +1,13 @@
 package bloon_td6
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/phantomnat/imbot/pkg/domain"
 	screen "github.com/phantomnat/imbot/pkg/screen"
 	"go.uber.org/zap"
+	"gocv.io/x/gocv"
 )
 
 const (
@@ -25,20 +25,6 @@ var (
 	CollectRewardState  BotState = "collect reward"
 	EndState            BotState = "end"
 )
-
-type Screen struct {
-	X      int
-	Y      int
-	Width  int
-	Height int
-}
-
-func (s *Screen) String() string {
-	if s == nil {
-		return ""
-	}
-	return fmt.Sprintf("x: %d, y: %d, w: %d, h: %d", s.X, s.Y, s.Width, s.Height)
-}
 
 type BloonTD6 struct {
 	log          *zap.SugaredLogger
@@ -112,5 +98,32 @@ func (b *BloonTD6) SentESC() {
 }
 
 func (b *BloonTD6) WindowSize() *domain.Rect {
-	return b.screen.GetRect()
+	r, _ := b.screen.GetRect()
+	return r
+}
+
+func (b *BloonTD6) GetMat() (gocv.Mat, error) {
+	if err := b.screen.CaptureToBuffer(); err != nil {
+		b.log.Errorf("capture image to buffer: %+v", err)
+		return gocv.NewMat(), err
+	}
+
+	return b.screen.GetMat()
+}
+
+func (b *BloonTD6) GetMatFromRobotgo() (gocv.Mat, error) {
+	rect, err := b.screen.GetRect()
+	if err != nil {
+		return gocv.NewMat(), err
+	}
+
+	bit := robotgo.CaptureScreen(rect.X, rect.Y, rect.Width, rect.Height)
+	defer robotgo.FreeBitmap(bit)
+
+	img := robotgo.ToImage(bit)
+	mat, err := gocv.ImageToMatRGB(img)
+	if err != nil {
+		return gocv.NewMat(), err
+	}
+	return mat, nil
 }
