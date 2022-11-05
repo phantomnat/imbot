@@ -1,7 +1,6 @@
 package screen
 
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 
@@ -22,6 +21,7 @@ type Screen struct {
 	hwnd       win.HWND
 	windowRect win.RECT
 	clientRect win.RECT
+	screenRect domain.Rect
 	log        *zap.SugaredLogger
 	buf        imageBuffer
 }
@@ -46,18 +46,19 @@ func (s *Screen) GetRect() (*domain.Rect, error) {
 	windowRect := (&domain.Rect{}).FromRect(s.windowRect)
 	clientRect := (&domain.Rect{}).FromRect(s.clientRect)
 
-	s.log.Debugf("window: %v", windowRect)
-	s.log.Debugf("client: %v", clientRect)
+	// s.log.Debugf("window: %v", windowRect)
+	// s.log.Debugf("client: %v", clientRect)
 
 	marginLeft := (windowRect.Width - clientRect.Width) / 2
 	marginTop := windowRect.Height - clientRect.Height - marginLeft
 
-	return &domain.Rect{
+	s.screenRect = domain.Rect{
 		X:      windowRect.X + marginLeft,
 		Y:      windowRect.Y + marginTop,
 		Width:  clientRect.Width,
 		Height: clientRect.Height,
-	}, nil
+	}
+	return &s.screenRect, nil
 }
 
 func (s *Screen) getRect() bool {
@@ -83,20 +84,38 @@ func (s *Screen) GetMat() (gocv.Mat, error) {
 	if err != nil {
 		return gocv.NewMat(), nil
 	}
-	gocv.IMWrite("get-mat-rgba.png", src)
-	fmt.Printf("src ch: %d, type: %v\n", src.Channels(), src.Type())
+	// gocv.IMWrite("get-mat-rgba.png", src)
+	// fmt.Printf("src ch: %d, type: %v\n", src.Channels(), src.Type())
 	defer src.Close()
 
 	// out := gocv.NewMat()
 	// src.ConvertTo(&out, gocv.MatTypeCV8UC3)
 
-	
 	out := gocv.NewMatWithSize(src.Rows(), src.Cols(), gocv.MatTypeCV8UC3)
 	gocv.CvtColor(src, &out, gocv.ColorRGBAToBGR)
-	gocv.IMWrite("get-mat-bgr.png", out)
-	fmt.Printf("src ch: %d, type: %v\n", out.Channels(), out.Type())
-	
+	// gocv.IMWrite("get-mat-bgr.png", out)
+	// fmt.Printf("src ch: %d, type: %v\n", out.Channels(), out.Type())
+
 	return out, nil
+}
+
+func (s *Screen) CaptureMatAndSave(filePath string) {
+	if err := s.CaptureToBuffer(); err != nil {
+		s.log.Errorf("cannot capture screen to buffer: %+v", err)
+		return
+	}
+	src, err := gocv.NewMatFromBytes(
+		s.buf.height,
+		s.buf.width,
+		gocv.MatTypeCV8UC4,
+		s.buf.data,
+	)
+	if err != nil {
+		s.log.Errorf("cannot create new image from buffer: %+v", err)
+		return
+	}
+	defer src.Close()
+	gocv.IMWrite(filePath, src)
 }
 
 func (s *Screen) CaptureToBuffer() error {
@@ -162,4 +181,38 @@ func (s *Screen) CaptureToBuffer() error {
 	sliceHdr.Cap = sliceHdr.Len
 	copy(s.buf.data, slice)
 	return nil
+}
+
+func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
+	nx := x + s.screenRect.X
+	ny := y + s.screenRect.Y
+	s.log.Debugf("move and click at %d, %d", nx, ny)
+	s.move(nx, ny)
+	robotgo.MilliSleep(50)
+	robotgo.Click(args...)
+}
+
+func (s *Screen) MouseMove(x, y int) {
+	nx := x + s.screenRect.X
+	ny := y + s.screenRect.Y
+	s.move(nx, ny)
+}
+
+// https://github.com/AutoHotkey/AutoHotkey/blob/master/Source/keyboard_mouse.cpp#L2285
+func (s *Screen) move(x, y int) {
+	screenWidth := win.GetSystemMetrics(win.SM_CXSCREEN)
+	screenHeight := win.GetSystemMetrics(win.SM_CYSCREEN)
+
+	aX := ((65536 * int32(x)) / screenWidth) + 1
+	aY := (((65536 * int32(y)) / screenHeight) + 1)
+
+	input := win.MOUSE_INPUT{
+		Type: win.INPUT_MOUSE,
+		Mi: win.MOUSEINPUT{
+			Dx:      aX,
+			Dy:      aY,
+			DwFlags: win.MOUSEEVENTF_MOVE | win.MOUSEEVENTF_ABSOLUTE,
+		},
+	}
+	win.SendInput(1, unsafe.Pointer(&input), int32(unsafe.Sizeof(input)))
 }

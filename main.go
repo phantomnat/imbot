@@ -6,10 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-vgo/robotgo"
 	hook "github.com/robotn/gohook"
 	"go.uber.org/zap"
-	"gocv.io/x/gocv"
 
 	"github.com/phantomnat/imbot/pkg/game/bloon_td6"
 	"github.com/phantomnat/imbot/pkg/im"
@@ -20,65 +18,54 @@ import (
 func main() {
 	pkg.InitLogger()
 	log := zap.S().Named("main")
+	imgProcManager := im.GetImageManager()
 
-	game, err := bloon_td6.New()
+	game, err := bloon_td6.New(imgProcManager)
 	if err != nil {
 		log.Fatalf("cannot init bloons td 6: %+v", err)
 		return
 	}
-	imgProcManager := im.GetImageManager()
 
-	uiHandler := ui.New()
+	uiHandler := ui.New(game)
 	log.Infof("registering hooks")
 
-	hook.Register(hook.KeyDown, []string{"q"}, func(event hook.Event) {
-		log.Infof("exiting...")
-		hook.End()
+	hook.Register(hook.KeyDown, []string{"p", "ctrl"}, func(event hook.Event) {
+		uiHandler.OnBtnToggleRunClicked()
 	})
 
-	hook.Register(hook.KeyDown, []string{"c"}, func(event hook.Event) {
+	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(event hook.Event) {
 		log.Infof("screen capturing...")
-		screen := game.WindowSize()
-		if screen == nil {
-			return
-		}
-		log.Debugf("screen: %v", screen)
-
-		bit := robotgo.CaptureScreen(screen.X, screen.Y, screen.Width, screen.Height)
-		defer robotgo.FreeBitmap(bit)
-
-		img := robotgo.ToImage(bit)
-		mat, err := gocv.ImageToMatRGBA(img)
-		if err != nil {
-			log.Errorf("cannot convert to gocv mat: %+v", err)
-		}
-		defer mat.Close()
 		today := strings.ReplaceAll(time.Now().Format(time.RFC3339Nano), ":", "-")
-		fp := filepath.Join("cap", today+".png")
-		gocv.IMWrite(fp, mat)
-
-		uiHandler.OnImageUpdated(img)
+		filePath := filepath.Join("cap", today+".png")
+		game.GetScreen().CaptureMatAndSave(filePath)
 	})
 
-	hook.Register(hook.KeyDown, []string{"t"}, func(event hook.Event) {
-		log.Infof("testing...")
+	// hook.Register(hook.KeyDown, []string{"t"}, func(event hook.Event) {
+	// 	log.Infof("testing...")
 
-		mat, err := game.GetMat()
-		if err != nil {
-			log.Errorf("get mat: %+v", err)
-			return
-		}
-		defer mat.Close()
+	// 	mat, err := game.GetMat()
+	// 	if err != nil {
+	// 		log.Errorf("get mat: %+v", err)
+	// 		return
+	// 	}
+	// 	defer mat.Close()
 
-		ok, pt := imgProcManager.MatchDefault(mat, "btn-play")
-		if ok {
-			log.Info("found on %v", pt)
-		}
+	// 	ok, pt := imgProcManager.MatchDefault(mat, "btn-play")
+	// 	if ok {
+	// 		log.Info("found on %v", pt)
+	// 	}
+	// 	img, err := mat.ToImage()
+	// 	if err == nil {
+	// 		uiHandler.OnImageUpdated(img)
+	// 	}
 
-		rect := game.WindowSize()
-		log.Infof("screen: %s, click: x: %d, y: %d", rect, rect.X+pt.X+10, rect.Y+pt.Y+10)
-		robotgo.MoveClick(rect.X+pt.X+10, rect.Y+pt.Y+10)
-	})
+	// 	if ok {
+	// 		game.GetScreen().MouseMoveAndClick(pt.X+10, pt.Y+10)
+	// 	}
+	// 	// rect := game.WindowSize()
+	// 	// log.Infof("screen: %s, click: x: %d, y: %d", rect, rect.X+pt.X+10, rect.Y+pt.Y+10)
+	// 	// robotgo.MoveClick(rect.X+, rect.Y+)
+	// })
 
 	s := hook.Start()
 	hook.Process(s)

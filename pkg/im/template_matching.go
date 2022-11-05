@@ -3,6 +3,7 @@ package im
 import (
 	"image"
 	"strconv"
+	"strings"
 
 	"gocv.io/x/gocv"
 )
@@ -12,8 +13,8 @@ const (
 	thOneTenthPercent = 0.001
 )
 
-func (m *ImageManager) MatchDefault(src gocv.Mat, p string) (bool, image.Point) {
-	return m.Match(src, p, thOnePercent)
+func (m *ImageManager) MatchDefault(src gocv.Mat, p ...string) (bool, image.Point) {
+	return m.Match(src, strings.Join(p, "."), thOnePercent)
 }
 
 // MatchOneP match should below 0.01 threshold value
@@ -92,7 +93,7 @@ func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, th flo
 	v, _, l, _ := gocv.MinMaxLoc(res)
 	//m.log.With("path", txtTpl).Debugf("match template min loc: %.4f (expected: %.4f)", v, th)
 	if v < th {
-		return true, l
+		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Cols()/2}
 	}
 
 	return false, image.Point{}
