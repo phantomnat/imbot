@@ -12,7 +12,7 @@ import (
 
 	"github.com/phantomnat/imbot/pkg/domain"
 	"github.com/phantomnat/imbot/pkg/im"
-	screen "github.com/phantomnat/imbot/pkg/screen"
+	"github.com/phantomnat/imbot/pkg/screen"
 )
 
 const (
@@ -101,6 +101,8 @@ func (b *BloonsTD6) Run(done <-chan struct{}) {
 			time.Sleep(oneThirtiethFrameTime)
 			continue
 		}
+
+		// TODO: execute the command if any
 
 		startTime := time.Now()
 

@@ -1,5 +1,7 @@
 package bloon_td6
 
+import "image"
+
 type StageLevel int
 
 const (
@@ -55,4 +57,14 @@ func NewMonkey(name string, paths ...int) Monkey {
 		m.Path1Level = paths[2]
 	}
 	return m
+}
+
+type Strategy struct {
+	Action ActionType
+	Monkey Monkey
+	Slot   int
+}
+
+func NewStrategy(action ActionType, monkey Monkey, pos image.Point) {
+
 }
