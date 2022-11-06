@@ -1,6 +1,7 @@
 package screen
 
 import (
+	"image"
 	"reflect"
 	"unsafe"
 
@@ -59,6 +60,23 @@ func (s *Screen) GetRect() (*domain.Rect, error) {
 		Height: clientRect.Height,
 	}
 	return &s.screenRect, nil
+}
+
+func (s *Screen) GetCurrentCursorPos() image.Point {
+	if !s.getRect() {
+		return image.Point{}
+	}
+
+	pt := win.POINT{}
+	if !win.GetCursorPos(&pt) {
+		return image.Point{}
+	}
+	s.log.Infof("mouse pos image.Pt(%d, %d)", pt.X, pt.Y)
+	if !win.ScreenToClient(s.hwnd, &pt) {
+		return image.Point{}
+	}
+	s.log.Infof("mouse client pos image.Pt(%d, %d)", pt.X, pt.Y)
+	return image.Pt(int(pt.X), int(pt.Y))
 }
 
 func (s *Screen) getRect() bool {

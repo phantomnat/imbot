@@ -145,6 +145,7 @@ func Rect(x, y, w, h int) image.Rectangle {
 
 var (
 	ptBtnAdvanced = image.Pt(730, 650)
+	ptBtnExpert   = image.Pt(890, 650)
 	ptBtnEasy     = image.Pt(430, 270)
 	ptBtnStandard = image.Pt(430, 390)
 	roiStage      = Rect(236, 84, 808, 400)
@@ -192,9 +193,11 @@ func (b *BloonsTD6) handleState() {
 			b.SetState(StageSelectionState)
 		}
 	case StageSelectionState:
-		ok, pt := b.imMatchDefaultInROI(m, roiStage, "lv-advanced", "midnight-mansion")
+		ok, pt := b.imMatchDefaultInROI(m, roiStage, "lv-expert", "ouch")
+		// ok, pt := b.imMatchDefaultInROI(m, roiStage, "lv-advanced", "midnight-mansion")
 		if !ok {
-			b.screen.MouseMoveAndClick(ptBtnAdvanced.X, ptBtnAdvanced.Y)
+			b.screen.MouseMoveAndClick(ptBtnExpert.X, ptBtnExpert.Y)
+			// b.screen.MouseMoveAndClick(ptBtnAdvanced.X, ptBtnAdvanced.Y)
 			time.Sleep(time.Millisecond * 500)
 		} else {
 			b.screen.MouseMoveAndClick(pt.X, pt.Y)

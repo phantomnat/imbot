@@ -33,7 +33,11 @@ func main() {
 		uiHandler.OnBtnToggleRunClicked()
 	})
 
-	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(event hook.Event) {
+	hook.Register(hook.KeyDown, []string{"f", "ctrl"}, func(event hook.Event) {
+		game.GetScreen().GetCurrentCursorPos()
+	})
+
+	hook.Register(hook.KeyDown, []string{"w", "ctrl"}, func(event hook.Event) {
 		log.Infof("screen capturing...")
 		today := strings.ReplaceAll(time.Now().Format(time.RFC3339Nano), ":", "-")
 		filePath := filepath.Join("cap", today+".png")
