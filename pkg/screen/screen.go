@@ -3,6 +3,7 @@ package screen
 import (
 	"image"
 	"reflect"
+	"time"
 	"unsafe"
 
 	"github.com/go-vgo/robotgo"
@@ -201,6 +202,83 @@ func (s *Screen) CaptureToBuffer() error {
 	return nil
 }
 
+func (s *Screen) KeyTap(key string, args ...any) {
+	//robotgo.KeyTap(key, args...)
+	s.toggleKeyCode(uint(key[0]), false)
+	time.Sleep(5 * time.Millisecond)
+	s.toggleKeyCode(uint(key[0]), true)
+}
+
+//func (s *Screen) KeyPress(key string, args ...any) {
+//	s.log.Debugf("pressing key %s", key)
+//	robotgo.KeyPress(key, args...)
+//}
+//
+//func (s *Screen) UnicodeType(key string) {
+//	s.unicodeType(key)
+//	time.Sleep(50 * time.Millisecond)
+//}
+
+func (s *Screen) toggleKeyCode(code uint, up bool) {
+	var dwFlags uint
+	if up {
+		dwFlags = win.KEYEVENTF_KEYUP
+	}
+	s.keyEvent(code, dwFlags)
+}
+
+func (s *Screen) keyEvent(key, dwFlags uint) {
+
+	//aLayout := GetKeyboardLayout(win.GetWindowThreadProcessId(win.GetForegroundWindow(), nil))
+	//layoutName := GetKeyboardLayoutNameW()
+	vk := VkKeyScanW(uint16(key))
+	// force us layout
+	usLayout := HKL(0x4090409)
+	scan := MapVirtualKeyEx(uint(vk)&0xFF, MAPVK_VK_TO_VSC, usLayout)
+
+	s.log.Infof("layout: %x, vk: %c (%x), scan: %c (%x)", usLayout, vk, vk, scan, scan)
+
+	input := win.KEYBD_INPUT{
+		Type: win.INPUT_KEYBOARD,
+		Ki: win.KEYBDINPUT{
+			WScan:   uint16(scan),
+			WVk:     uint16(vk),
+			DwFlags: uint32(dwFlags),
+		},
+	}
+	win.SendInput(1, unsafe.Pointer(&input), int32(unsafe.Sizeof(input)))
+}
+
+func LoByte(x uint32) byte { return uint8(x & 0xff) }
+
+func (s *Screen) unicodeType(key string) {
+	var input = make([]win.KEYBD_INPUT, 0, len(key)*2)
+
+	for _, r := range key {
+		input = append(input, win.KEYBD_INPUT{
+			Type: win.INPUT_KEYBOARD,
+			Ki: win.KEYBDINPUT{
+				WScan:   uint16(r),
+				DwFlags: win.KEYEVENTF_UNICODE,
+			},
+		})
+
+		input = append(input, win.KEYBD_INPUT{
+			Type: win.INPUT_KEYBOARD,
+			Ki: win.KEYBDINPUT{
+				WScan:   uint16(r),
+				DwFlags: win.KEYEVENTF_UNICODE | win.KEYEVENTF_KEYUP,
+			},
+		})
+	}
+
+	win.SendInput(uint32(len(input)), unsafe.Pointer(&input), int32(unsafe.Sizeof(input)))
+}
+
+func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
+	s.MouseMoveAndClick(pt.X, pt.Y, args...)
+}
+
 func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
 	nx := x + s.screenRect.X
 	ny := y + s.screenRect.Y
@@ -214,6 +292,60 @@ func (s *Screen) MouseMove(x, y int) {
 	nx := x + s.screenRect.X
 	ny := y + s.screenRect.Y
 	s.move(nx, ny)
+}
+
+func (s *Screen) MouseDrag(x1, y1, x2, y2 int) {
+	x1 += s.screenRect.X
+	y1 += s.screenRect.Y
+	x2 += s.screenRect.X
+	y2 += s.screenRect.Y
+
+	s.move(x1, y1)
+	time.Sleep(100 * time.Millisecond)
+	robotgo.Toggle("left")
+	time.Sleep(100 * time.Millisecond)
+	s.moveMouseIncremental(x1, y1, x2, y2)
+	time.Sleep(50 * time.Millisecond)
+	robotgo.Toggle("left", "up")
+}
+
+func (s *Screen) moveMouseIncremental(x1, y1, x2, y2 int) {
+	speed := 50
+	minMouseSpeed := 32
+	calcDelta := func(v1, v2 int) int {
+		delta := 0
+		if v1 < v2 {
+			delta = (v2 - v1) / speed
+			if delta == 0 || delta < minMouseSpeed {
+				delta = minMouseSpeed
+			}
+			if v1+delta > v2 {
+				delta = v2 - v1
+			}
+		} else if v1 > v2 {
+			delta = (v1 - v2) / speed
+			if delta == 0 || delta < minMouseSpeed {
+				delta = minMouseSpeed
+			}
+			if v1-delta < v2 {
+				delta = v1 - v2
+			}
+			return -delta
+		}
+		return delta
+	}
+
+	for x1 != x2 || y1 != y2 {
+		x1 += calcDelta(x1, x2)
+		y1 += calcDelta(y1, y2)
+
+		s.move(x1, y1)
+		s.doMouseDelay()
+	}
+}
+
+func (s *Screen) doMouseDelay() {
+	time.Sleep(5 * time.Millisecond)
 }
 
 // https://github.com/AutoHotkey/AutoHotkey/blob/master/Source/keyboard_mouse.cpp#L2285

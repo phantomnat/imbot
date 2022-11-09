@@ -1,0 +1,100 @@
+strategies:
+  # start
+  - { action: buy, monkey: engineer-monkey, slot: 5 }
+  - { action: play-2x }
+  - { action: buy, monkey: dart-monkey, slot: 14 }
+#  - { action: buy, monkey: dart-monkey, slot: 15 }
+
+  - { action: buy, monkey: dart-monkey, slot: 3 }
+
+  # engineer-monkey
+#  - { action: buy, monkey: engineer-monkey, slot: 10 }
+  - { action: buy, monkey: engineer-monkey, slot: 15 }
+  - { action: upgrade, slot: 5, path1: 1 }
+#  - { action: upgrade, slot: 10, path1: 1 }
+  - { action: upgrade, slot: 15, path1: 1 }
+
+  # ninja
+  - { action: buy, slot: 4, monkey: ninja-monkey }
+  - { action: buy, slot: 9, monkey: ninja-monkey }
+  - { action: buy, slot: 7, monkey: ninja-monkey }
+
+  # engineer-monkey 2-0-0
+#  - { action: upgrade, slot: 10, path1: 2 }
+  - { action: upgrade, slot: 15, path1: 2 }
+
+  # ninja 1-1-0
+  - { action: upgrade, slot: 4,  path1: 1, path2: 1 }
+  - { action: upgrade, slot: 9,  path1: 1, path2: 1 }
+  - { action: upgrade, slot: 7, path1: 1, path2: 1 }
+
+  # ninja 0-1-1
+#  - { action: upgrade, slot: 4, path2: 1, path3: 1 }
+#  - { action: upgrade, slot: 9, path2: 1, path3: 1 }
+#  - { action: upgrade, slot: 7, path2: 1, path3: 1 }
+
+  # alchemist
+  - { action: buy, slot: 0, monkey: alchemist }
+  - { action: buy, slot: 6, monkey: alchemist }
+  - { action: buy, slot: 8, monkey: alchemist }
+
+  # alchemist 1-0-0
+  - { action: upgrade, slot: 0, path1: 1 }
+  - { action: upgrade, slot: 6, path1: 1 }
+  - { action: upgrade, slot: 8, path1: 1 }
+
+  # ninja 1-2-0
+  - { action: upgrade, slot: 4,  path1: 1, path2: 2 }
+  - { action: upgrade, slot: 9,  path1: 1, path2: 2 }
+  - { action: upgrade, slot: 7,  path1: 1, path2: 2 }
+
+  # ninja 0-1-2
+#  - { action: upgrade, slot: 4,  path2: 1, path3: 2 }
+#  - { action: upgrade, slot: 9,  path2: 1, path3: 2 }
+#  - { action: upgrade, slot: 7,  path2: 1, path3: 2 }
+
+  # engineer-monkey 2-0-0
+  - { action: upgrade, slot: 5, path1: 2 }
+
+  # engineer-monkey 2-0-2
+  - { action: upgrade, slot: 5, path1: 2, path3: 2 }
+#  - { action: upgrade, slot: 10, path1: 2, path3: 2 }
+  - { action: upgrade, slot: 15, path1: 2, path3: 2 }
+
+  # engineer-monkey 3-0-2
+  - { action: upgrade, slot: 5, path1: 3, path3: 2 }
+#  - { action: upgrade, slot: 10, path1: 3, path3: 2 }
+
+  # bomb shooter
+  - { action: buy, slot: 1, monkey: bomb-shooter }
+
+  # alchemist 1-1-0
+  - { action: upgrade, slot: 0, path2: 1 }
+  - { action: upgrade, slot: 6, path2: 1 }
+  - { action: upgrade, slot: 8, path2: 1 }
+
+  # bomb shooter 2-3-0
+  - { action: upgrade, slot: 1, path1: 2, path2: 3 }
+
+  # ninja 3-2-0
+  - { action: upgrade, slot: 9, path1: 3, path2: 2 }
+  # ninja 0-2-2
+#  - { action: upgrade, slot: 4, path2: 2, path3: 2 }
+
+  # alchemist 2-2-0
+  - { action: upgrade, slot: 0, path1: 2, path2: 2 }
+#  - { action: upgrade, slot: 6, path2: 2, path3: 1 }
+  - { action: upgrade, slot: 8, path1: 2, path2: 2 }
+
+  # ninja 3-2-0
+  - { action: upgrade, slot: 4, path1: 3, path2: 2 }
+
+  # ninja 0-2-2
+#  - { action: upgrade, slot: 9, path2: 2, path3: 2 }
+
+  # boomerang-monkey
+#  - { action: buy, slot: 12, monkey: boomerang-monkey }
+  # boomerang-monkey 0-2-2
+#  - { action: upgrade, slot: 12, path2: 2, path3: 2 }
+  # boomerang-monkey 0-3-2
+#  - { action: upgrade, slot: 12, path2: 3, path3: 2 }

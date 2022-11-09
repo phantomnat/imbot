@@ -1,6 +1,10 @@
 package bloon_td6
 
-import "image"
+import (
+	"image"
+
+	"gocv.io/x/gocv"
+)
 
 type ROIMonkeyPanel struct {
 	InfoIcon image.Rectangle
@@ -25,8 +29,17 @@ type ROIMonkeyUpgradePath struct {
 }
 
 var (
+	roiSettingIcon  = Rect(1043, 4, 44, 44)
+	roiSettingIcon2 = Rect(780, 4, 44, 44)
+
+	ptsShopDragDown = [2]image.Point{image.Pt(1180, 620), image.Pt(1180, 5)}
+	ptsShopDragUp   = [2]image.Point{image.Pt(1180, 105), image.Pt(1180, 715)}
+
+	ptBtnPlay          = image.Pt(1220, 680)
 	roiPlaySpeed       = Rect(1222, 675, 2, 4)
 	roiMonkeyShopPanel = Rect(1100, 100, 156, 533)
+
+	thUpgradeBtn = gocv.NewScalar(0, 200, 100, 0)
 
 	roiLeftMonkeyPanel = ROIMonkeyPanel{
 		InfoIcon:      Rect(38, 95, 37, 37),

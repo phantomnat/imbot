@@ -25,12 +25,13 @@ const (
 type BotState string
 
 var (
-	UnknownState        BotState = "unknown"
-	StartState          BotState = "start"
-	StageSelectionState BotState = "stage selection"
-	PlayingState        BotState = "playing"
-	CollectRewardState  BotState = "collect reward"
-	EndState            BotState = "end"
+	UnknownState           BotState = "unknown"
+	StartState             BotState = "start"
+	StageSelectionState    BotState = "stage selection"
+	LoadingBeforePlayState BotState = "loading before play"
+	PlayingState           BotState = "playing"
+	CollectRewardState     BotState = "collect reward"
+	EndState               BotState = "end"
 )
 
 type BotRunningState string
@@ -45,9 +46,15 @@ type BloonsTD6 struct {
 
 	im *im.ImageManager
 
+	currentStage Stage
+
 	muSendCaptureImage sync.RWMutex
 	isSendCaptureImage bool
 	cbSendCaptureImage func(image.Image)
+
+	startTime   time.Time
+	timeUsedIdx int
+	timeUsed    [10]float64
 }
 
 var _ domain.Game = (*BloonsTD6)(nil)
@@ -87,7 +94,10 @@ func (b *BloonsTD6) Reset() {
 func (b *BloonsTD6) Run(done <-chan struct{}) {
 	oneThirtiethFrameTime := 33 * time.Millisecond
 
+	b.currentStage = NewStageExpertOuch(b)
 	b.SetState(StartState)
+	//b.SetState(PlayingState)
+
 	for {
 		select {
 		case <-done:
@@ -153,7 +163,9 @@ var (
 	roiStage      = Rect(236, 84, 808, 400)
 
 	// playing
-	roiVictory = Rect(442, 63, 397, 108)
+	roiVictory    = Rect(442, 63, 397, 108)
+	roiLevelUp    = Rect(555, 353, 170, 50)
+	ptSkipLevelUp = image.Pt(650, 20)
 
 	// collect reward
 	ptBtnNext = image.Pt(640, 600)
@@ -192,33 +204,55 @@ func (b *BloonsTD6) handleState() {
 		ok, pt := b.imMatchDefault(m, "btn-play")
 		if ok {
 			b.screen.MouseMoveAndClick(pt.X, pt.Y)
+			b.startTime = time.Now()
 			b.SetState(StageSelectionState)
 		}
 	case StageSelectionState:
-		ok, pt := b.imMatchDefaultInROI(m, roiStage, "lv-expert", "ouch")
-		// ok, pt := b.imMatchDefaultInROI(m, roiStage, "lv-advanced", "midnight-mansion")
+		if b.currentStage == nil {
+			b.currentStage = NewStageExpertOuch(b)
+		}
+		stageLevelPath := "lv-" + b.currentStage.GetLevel().String()
+		stageLevelName := b.currentStage.GetName()
+
+		ok, pt := b.imMatchDefaultInROI(m, roiStage, stageLevelPath, stageLevelName)
 		if !ok {
+			// TODO: make it changes follow stage level
 			b.screen.MouseMoveAndClick(ptBtnExpert.X, ptBtnExpert.Y)
-			// b.screen.MouseMoveAndClick(ptBtnAdvanced.X, ptBtnAdvanced.Y)
 			time.Sleep(time.Millisecond * 500)
 		} else {
+			// click on the stage
 			b.screen.MouseMoveAndClick(pt.X, pt.Y)
 			time.Sleep(time.Millisecond * 500)
+
+			// click easy
 			b.screen.MouseMoveAndClick(ptBtnEasy.X, ptBtnEasy.Y)
 			time.Sleep(time.Millisecond * 500)
+
+			// click standard
 			b.screen.MouseMoveAndClick(ptBtnStandard.X, ptBtnStandard.Y)
+			b.SetState(LoadingBeforePlayState)
+		}
+	case LoadingBeforePlayState:
+		ok1, _ := b.imMatchDefaultInROI(m, roiSettingIcon, "setting-icon")
+		ok2, _ := b.imMatchDefaultInROI(m, roiSettingIcon2, "setting-icon")
+		if ok1 || ok2 {
 			b.SetState(PlayingState)
 		}
-		// select stage
-
-		// choose easy
-		// click play
-		// b.SetState(PlayingState)
 	case PlayingState:
 		if ok, _ := b.imMatchDefaultInROI(m, roiVictory, "victory"); ok {
 			b.SetState(CollectRewardState)
 			return
 		}
+		if ok, _ := b.imMatchDefaultInROI(m, roiLevelUp, "level-up"); ok {
+			b.GetScreen().MouseMoveAndClickByPoint(ptSkipLevelUp)
+			time.Sleep(500 * time.Millisecond)
+			b.GetScreen().MouseMoveAndClickByPoint(ptSkipLevelUp)
+			time.Sleep(500 * time.Millisecond)
+			return
+		}
+
+		b.currentStage.Run(m)
+
 		// hardest
 		// building
 		// upgrading
@@ -229,14 +263,28 @@ func (b *BloonsTD6) handleState() {
 	case CollectRewardState:
 		if ok, _ := b.imMatchDefault(m, "victory"); ok {
 			b.screen.MouseMoveAndClick(ptBtnNext.X, ptBtnNext.Y)
-			time.Sleep(time.Millisecond * 1000)
+			time.Sleep(time.Millisecond * 800)
 			b.screen.MouseMoveAndClick(ptBtnHome.X, ptBtnHome.Y)
-			time.Sleep(time.Millisecond * 1000)
+			time.Sleep(time.Millisecond * 800)
 
 			b.SetState(EndState)
 		}
 	case EndState:
+		b.currentStage.Reset()
+
 		if ok, _ := b.imMatchDefault(m, "btn-play"); ok {
+			b.timeUsed[b.timeUsedIdx] = time.Since(b.startTime).Seconds()
+			total := float64(0)
+			count := 0
+			for ; count < len(b.timeUsed); count++ {
+				if b.timeUsed[count] == 0 {
+					break
+				}
+				total += b.timeUsed[count]
+			}
+
+			b.log.Infof("last round: %.2f seconds, average: %.2f", b.timeUsed[b.timeUsedIdx], total/float64(count))
+			b.timeUsedIdx = (b.timeUsedIdx + 1) % len(b.timeUsed)
 			b.SetState(StartState)
 		}
 	}
