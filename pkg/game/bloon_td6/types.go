@@ -108,9 +108,6 @@ var (
 	}
 )
 
-type BaseStage struct {
-}
-
 type Monkey struct {
 	Name       string
 	Page       int
@@ -152,8 +149,15 @@ type Strategy struct {
 }
 
 type StrategiesConfig struct {
+	Slots      []PointConfig    `yaml:"slots"`
 	Strategies []StrategyConfig `yaml:"strategies"`
 }
+
+type PointConfig struct {
+	X int `yaml:"x"`
+	Y int `yaml:"y"`
+}
+
 type StrategyConfig struct {
 	Action ActionType `yaml:"action"`
 	Monkey string     `yaml:"monkey"`

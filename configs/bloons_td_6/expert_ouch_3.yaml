@@ -1,0 +1,89 @@
+strategies:
+  # ninja - boomerang
+  - { action: buy, slot: 5, monkey: ninja-monkey }
+  - { action: play-2x }
+
+  - { action: buy, slot: 14, monkey: boomerang-monkey,  }
+
+  - { action: buy, slot: 3, monkey: dart-monkey }
+
+  - { action: buy, slot: 6, monkey: boomerang-monkey, }
+  - { action: buy, slot: 12, monkey: boomerang-monkey, }
+  - { action: buy, slot: 4, monkey: boomerang-monkey, }
+
+  - { action: buy, slot: 8, monkey: ninja-monkey }
+  - { action: buy, slot: 15, monkey: ninja-monkey }
+
+  - { action: upgrade, slot: 3, path2: 1 }
+
+  # ninja 1-0-0
+  - { action: upgrade, slot: 5, path1: 1 }
+  - { action: upgrade, slot: 8, path1: 1 }
+  - { action: upgrade, slot: 15, path1: 1 }
+
+  # dart 0-1-2
+  - { action: upgrade, slot: 3,  path3: 2 }
+
+  # ninja 1-0-1
+  - { action: upgrade, slot: 5,  path3: 1 }
+  - { action: upgrade, slot: 8, path3: 1 }
+
+  # boomerang 0-0-2
+  - { action: upgrade, slot: 6,  path3: 2 }
+  - { action: upgrade, slot: 4,  path3: 2 }
+  - { action: upgrade, slot: 12,  path3: 2 }
+
+  # glue-gunner
+  - { action: buy, slot: 9, monkey: glue-gunner }
+
+  # dart 0-1-3
+  - { action: upgrade, slot: 3, path3: 3 }
+
+  # ninja 2-0-1
+  - { action: upgrade, slot: 5, path1: 2 }
+  - { action: upgrade, slot: 8, path1: 2 }
+
+  # boomerang 0-2-2
+  - { action: upgrade, slot: 6,  path2: 2 }
+  - { action: upgrade, slot: 4,  path2: 2 }
+  - { action: upgrade, slot: 12,  path2: 2 }
+
+  # ninja 1-1-0
+  - { action: upgrade, slot: 15, path1: 1, path2: 1}
+
+  # glue-gunner 0-1-1
+  - { action: upgrade, slot: 9,  path2: 1, path3: 1 }
+
+
+  # bomb shooter
+  - { action: buy, slot: 1, monkey: bomb-shooter }
+
+  # bomb shooter 0-2-2
+  - { action: upgrade, slot: 1, path2: 2, path3: 2 }
+
+  # dart 0-2-3
+  - { action: upgrade, slot: 3,  path2: 2 }
+
+  # ninja 3-0-1
+  - { action: upgrade, slot: 5,  path1: 3 }
+  - { action: upgrade, slot: 8, path1: 3 }
+
+  # boomerang 2-2-0
+  - { action: upgrade, slot: 14, path1: 2, path2: 2 }
+
+  # glue-gunner
+  - { action: buy, slot: 2, monkey: glue-gunner }
+  # glue-gunner 0-1-1
+  - { action: upgrade, slot: 2,  path2: 1, path3: 1 }
+
+  # bomb shooter 0-3-2
+  - { action: upgrade, slot: 1, path2: 3, path3: 2 }
+
+  # druid 3-1-0
+  - { action: buy, slot: 13, monkey: druid }
+  - { action: upgrade, slot: 13, path1: 1, path2: 1, path3: 0 }
+  - { action: upgrade, slot: 13, path1: 3, path2: 1, path3: 0 }
+
+  # boomerang 0-3-2
+  - { action: upgrade, slot: 12,  path2: 3 }
+  - { action: upgrade, slot: 4,  path2: 3 }

@@ -75,7 +75,7 @@ func NewStageExpertOuch(game *BloonsTD6) *StageExpertOuch {
 			{Action: ActionTypeUpgrade, Slot: 0, Path1: 2, Path2: 2}, // alchemist 2-1-0
 			{Action: ActionTypeUpgrade, Slot: 9, Path1: 3, Path3: 1}, // ninja 3-0-1
 		},
-		strategyFile: "./configs/bloons_td_6/expert_ouch_1.yaml",
+		strategyFile: "./configs/bloons_td_6/expert_ouch_2.yaml",
 		slots: []image.Point{
 			image.Pt(365, 210),
 			image.Pt(448, 210),

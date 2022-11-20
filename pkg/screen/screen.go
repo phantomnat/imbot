@@ -236,7 +236,7 @@ func (s *Screen) keyEvent(key, dwFlags uint) {
 	usLayout := HKL(0x4090409)
 	scan := MapVirtualKeyEx(uint(vk)&0xFF, MAPVK_VK_TO_VSC, usLayout)
 
-	s.log.Infof("layout: %x, vk: %c (%x), scan: %c (%x)", usLayout, vk, vk, scan, scan)
+	//s.log.Infof("layout: %x, vk: %c (%x), scan: %c (%x)", usLayout, vk, vk, scan, scan)
 
 	input := win.KEYBD_INPUT{
 		Type: win.INPUT_KEYBOARD,

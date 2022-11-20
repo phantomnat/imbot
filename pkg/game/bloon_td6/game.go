@@ -94,7 +94,7 @@ func (b *BloonsTD6) Reset() {
 func (b *BloonsTD6) Run(done <-chan struct{}) {
 	oneThirtiethFrameTime := 33 * time.Millisecond
 
-	b.currentStage = NewStageExpertOuch(b)
+	b.currentStage = NewStageExpertDarkCastle(b)
 	b.SetState(StartState)
 	//b.SetState(PlayingState)
 
@@ -208,9 +208,9 @@ func (b *BloonsTD6) handleState() {
 			b.SetState(StageSelectionState)
 		}
 	case StageSelectionState:
-		if b.currentStage == nil {
-			b.currentStage = NewStageExpertOuch(b)
-		}
+		//if b.currentStage == nil {
+		//	b.currentStage = NewStageExpertOuch(b)
+		//}
 		stageLevelPath := "lv-" + b.currentStage.GetLevel().String()
 		stageLevelName := b.currentStage.GetName()
 
@@ -218,15 +218,15 @@ func (b *BloonsTD6) handleState() {
 		if !ok {
 			// TODO: make it changes follow stage level
 			b.screen.MouseMoveAndClick(ptBtnExpert.X, ptBtnExpert.Y)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Millisecond * 800)
 		} else {
 			// click on the stage
 			b.screen.MouseMoveAndClick(pt.X, pt.Y)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Millisecond * 800)
 
 			// click easy
 			b.screen.MouseMoveAndClick(ptBtnEasy.X, ptBtnEasy.Y)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Millisecond * 800)
 
 			// click standard
 			b.screen.MouseMoveAndClick(ptBtnStandard.X, ptBtnStandard.Y)
@@ -239,27 +239,26 @@ func (b *BloonsTD6) handleState() {
 			b.SetState(PlayingState)
 		}
 	case PlayingState:
+		// go to collect reward if win
 		if ok, _ := b.imMatchDefaultInROI(m, roiVictory, "victory"); ok {
 			b.SetState(CollectRewardState)
 			return
 		}
+		// TODO: restart if lose
+
 		if ok, _ := b.imMatchDefaultInROI(m, roiLevelUp, "level-up"); ok {
 			b.GetScreen().MouseMoveAndClickByPoint(ptSkipLevelUp)
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(800 * time.Millisecond)
 			b.GetScreen().MouseMoveAndClickByPoint(ptSkipLevelUp)
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(800 * time.Millisecond)
 			return
 		}
 
-		b.currentStage.Run(m)
-
-		// hardest
 		// building
 		// upgrading
 		// ack the level up
-		// wait for win or lose dialog
-		// restart if lose
-		// go to collect reward if win
+		b.currentStage.Run(m)
+
 	case CollectRewardState:
 		if ok, _ := b.imMatchDefault(m, "victory"); ok {
 			b.screen.MouseMoveAndClick(ptBtnNext.X, ptBtnNext.Y)

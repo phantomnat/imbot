@@ -1,0 +1,63 @@
+slots:
+  - {x: 345,y: 211}
+  - {x: 481,y: 280}
+  - {x: 525,y: 295}
+  - {x: 573,y: 295}
+  - {x: 621,y: 295}
+  - {x: 675,y: 295}
+
+  - {x: 341,y: 505}
+  - {x: 479,y: 446}
+  - {x: 530,y: 444}
+  - {x: 580,y: 444}
+  - {x: 630,y: 444}
+  - {x: 680,y: 444}
+
+  - {x: 725,y: 463}
+  - {x: 725,y: 527}
+
+  - {x: 685,y: 564}
+
+strategies:
+  # start
+  - { action: buy, slot: 12, monkey: monkey-sub }
+  - { action: play-2x }
+
+  - { action: buy, slot: 4, monkey: dart-monkey  }
+
+  # monkey-sub 2-0-0
+  - { action: upgrade, slot: 12, path1: 2, path2: 0, path3: 0 }
+
+  # druid
+  - { action: buy, slot: 7, monkey: druid }
+  - { action: buy, slot: 1, monkey: druid }
+
+  - { action: upgrade, slot: 7, path1: 1, path2: 0, path3: 0 }
+  - { action: upgrade, slot: 1, path1: 1, path2: 0, path3: 0 }
+
+  # dart-monkey 0-0-2
+  - { action: upgrade, slot: 4, path1: 0, path2: 0, path3: 2 }
+
+  # monkey-sub 2-0-2
+  - { action: upgrade, slot: 12, path1: 2, path2: 0, path3: 2 }
+
+  - { action: buy, slot: 0, monkey: dart-monkey  }
+  - { action: buy, slot: 6, monkey: dart-monkey  }
+  - { action: upgrade, slot: 0, path1: 0, path2: 0, path3: 2 }
+  - { action: upgrade, slot: 6, path1: 0, path2: 0, path3: 2 }
+
+  # alchemist 2-2-0
+  - { action: buy, slot: 14, monkey: alchemist }
+  - { action: upgrade, slot: 14, path1: 2, path2: 2, path3: 0 }
+
+  # monkey-sub 2-0-3
+  - { action: upgrade, slot: 12, path1: 2, path2: 0, path3: 3 }
+
+  # alchemist 3-2-0
+  - { action: upgrade, slot: 14, path1: 3, path2: 2, path3: 0 }
+
+  # monkey-sub 2-0-4
+  - { action: upgrade, slot: 12, path1: 2, path2: 0, path3: 4 }
+
+  # alchemist 4-2-0
+  - { action: upgrade, slot: 14, path1: 4, path2: 2, path3: 0 }
