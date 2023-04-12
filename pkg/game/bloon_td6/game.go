@@ -308,7 +308,7 @@ func (b *BloonsTD6) SentESC() {
 	robotgo.KeyTap(robotgo.Escape)
 }
 
-func (b *BloonsTD6) WindowSize() *domain.Rect {
+func (b *BloonsTD6) WindowSize() domain.Rect {
 	r, _ := b.screen.GetRect()
 	return r
 }
@@ -322,6 +322,6 @@ func (b *BloonsTD6) GetMat() (gocv.Mat, error) {
 	return b.screen.GetMat()
 }
 
-func (b *BloonsTD6) GetScreen() *screen.Screen {
+func (b *BloonsTD6) GetScreen() domain.Screen {
 	return b.screen
 }

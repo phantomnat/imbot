@@ -34,7 +34,7 @@ func main() {
 	})
 
 	hook.Register(hook.KeyDown, []string{"f", "ctrl"}, func(event hook.Event) {
-		game.GetScreen().GetCurrentCursorPos()
+		// game.GetScreen().GetCurrentCursorPos()
 	})
 
 	hook.Register(hook.KeyDown, []string{"w", "ctrl"}, func(event hook.Event) {

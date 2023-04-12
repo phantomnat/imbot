@@ -2,6 +2,9 @@ package ui
 
 import (
 	"image"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -28,10 +31,11 @@ type uiHandler struct {
 	isDebugCapture bool
 	// vboxMain  *fyne.Container
 	// lblStatus *widget.Label
-	isBotRunning    bool
-	btnToggleRun    *widget.Button
-	btnReset        *widget.Button
-	btnShowDebugWin *widget.Button
+	isBotRunning     bool
+	btnToggleRun     *widget.Button
+	btnReset         *widget.Button
+	btnShowDebugWin  *widget.Button
+	btnCaptureScreen *widget.Button
 }
 
 func New(g domain.Game) *uiHandler {
@@ -59,6 +63,7 @@ func (h *uiHandler) init() {
 	h.btnToggleRun = widget.NewButton("start", h.OnBtnToggleRunClicked)
 	h.btnReset = widget.NewButton("reset", h.onBtnResetClicked)
 	h.btnShowDebugWin = widget.NewButton("win", h.onShowDebugWinClicked)
+	h.btnCaptureScreen = widget.NewButton("cap", h.onCaptureScreenClicked)
 	// h.btnShowDebugWin.Resize(fyne.NewSize(100, 40))
 
 	// h.lblStatus = widget.NewLabel("test")
@@ -68,7 +73,7 @@ func (h *uiHandler) init() {
 	h.mainWindow.SetContent(
 		container.New(
 			layout.NewVBoxLayout(),
-			container.NewHBox(h.btnToggleRun, h.btnReset, h.btnShowDebugWin),
+			container.NewHBox(h.btnToggleRun, h.btnReset, h.btnShowDebugWin, h.btnCaptureScreen),
 		),
 	)
 }
@@ -103,4 +108,11 @@ func (h *uiHandler) onBtnResetClicked() {
 	h.isBotRunning = false
 	h.btnToggleRun.SetText("pause")
 	h.game.Reset()
+}
+
+func (h *uiHandler) onCaptureScreenClicked() {
+	h.log.Infof("screen capturing...")
+	today := strings.ReplaceAll(time.Now().Format(time.RFC3339Nano), ":", "-")
+	filePath := filepath.Join("cap", today+".png")
+	h.game.GetScreen().CaptureMatAndSave(filePath)
 }

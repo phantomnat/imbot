@@ -37,12 +37,15 @@ func NewFromTitle(title string) (*Screen, error) {
 		hwnd: hwnd,
 		log:  zap.S().Named("screen"),
 	}
+	if rect, err := s.GetRect(); err == nil {
+		s.log.Infof("screen found with %v", rect)
+	}
 	return s, nil
 }
 
-func (s *Screen) GetRect() (*domain.Rect, error) {
+func (s *Screen) GetRect() (domain.Rect, error) {
 	if !s.getRect() {
-		return nil, errors.Errorf("cannot get window rect (hwnd: %x)", s.hwnd)
+		return domain.Rect{}, errors.Errorf("cannot get window rect (hwnd: %x)", s.hwnd)
 	}
 
 	windowRect := (&domain.Rect{}).FromRect(s.windowRect)
@@ -60,7 +63,7 @@ func (s *Screen) GetRect() (*domain.Rect, error) {
 		Width:  clientRect.Width,
 		Height: clientRect.Height,
 	}
-	return &s.screenRect, nil
+	return s.screenRect, nil
 }
 
 func (s *Screen) GetCurrentCursorPos() image.Point {
@@ -279,13 +282,22 @@ func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
 	s.MouseMoveAndClick(pt.X, pt.Y, args...)
 }
 
+func (s *Screen) MouseMoveAndClickByRect(roi image.Rectangle, args ...any) {
+	x := roi.Min.X + (roi.Dx() / 2)
+	y := roi.Min.Y + (roi.Dy() / 2)
+	s.MouseMoveAndClick(x, y, args...)
+}
+
 func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
 	nx := x + s.screenRect.X
 	ny := y + s.screenRect.Y
 	s.log.Debugf("move and click at %d, %d", nx, ny)
 	s.move(nx, ny)
-	robotgo.MilliSleep(50)
-	robotgo.Click(args...)
+	robotgo.MilliSleep(80)
+	robotgo.Click()
+	// SentMouseEvent(MOUSEEVENTF_LEFTDOWN)
+	// robotgo.MilliSleep(100)
+	// SentMouseEvent(MOUSEEVENTF_LEFTUP)
 }
 
 func (s *Screen) MouseMove(x, y int) {

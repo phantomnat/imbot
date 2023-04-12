@@ -12,6 +12,7 @@ type HKL uintptr
 var (
 	libuser32 *windows.LazyDLL
 
+	mouseEvent             *windows.LazyProc
 	mapVirtualKey          *windows.LazyProc
 	mapVirtualKeyEx        *windows.LazyProc
 	getKeyboardLayout      *windows.LazyProc
@@ -24,6 +25,7 @@ var (
 func init() {
 	libuser32 = windows.NewLazySystemDLL("user32.dll")
 
+	mouseEvent = libuser32.NewProc("mouse_event")
 	mapVirtualKey = libuser32.NewProc("MapVirtualKeyW")
 	mapVirtualKeyEx = libuser32.NewProc("MapVirtualKeyExW")
 	getKeyboardLayout = libuser32.NewProc("GetKeyboardLayout")
@@ -40,6 +42,13 @@ const (
 	MAPVK_VK_TO_VSC_EX = 0x4
 
 	KL_NAMELENGTH = 9
+
+	MOUSEEVENTF_LEFTDOWN   = 0x2
+	MOUSEEVENTF_LEFTUP     = 0x4
+	MOUSEEVENTF_RIGHTDOWN  = 0x8
+	MOUSEEVENTF_RIGHTUP    = 0x10
+	MOUSEEVENTF_MIDDLEDOWN = 0x20
+	MOUSEEVENTF_MIDDLEUP   = 0x40
 )
 
 // https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-mapvirtualkeya
@@ -118,4 +127,8 @@ func Utf16zToString(in []byte) string {
 		}
 	}
 	return string(utf16.Decode(out))
+}
+
+func SentMouseEvent(eventType uint32) {
+	mouseEvent.Call(uintptr(eventType), 0, 0, 0, 0)
 }

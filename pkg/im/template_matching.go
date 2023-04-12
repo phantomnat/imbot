@@ -41,16 +41,37 @@ func (m *ImageManager) MatchN(src gocv.Mat, p string, th float32) (bool, image.P
 	return m.Match(src, p, th)
 }
 
+type MatchOption struct {
+	Path     string
+	Th       float32
+	PrintVal bool
+}
+
+func (o *MatchOption) applyDefault() {
+	if o == nil {
+		return
+	}
+	if o.Th == 0 {
+		o.Th = thOnePercent
+	}
+}
+
 // Match from <p>.1 to <p>.10
-func (m *ImageManager) Match(src gocv.Mat, p string, th float32) (bool, image.Point) {
+func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...MatchOption) (bool, image.Point) {
+	o := MatchOption{}
+	if len(opt) > 0 {
+		o = opt[0]
+	}
+	o.applyDefault()
+
 	if ok, tpl := m.Get(p); ok {
-		if matched, pt := m.match(&src, p, tpl, th); matched {
+		if matched, pt := m.match(&src, p, tpl, o); matched {
 			return matched, pt
 		}
 	}
 	for i := 1; i <= 10; i++ {
 		if ok, tpl := m.Get(p + "_" + strconv.Itoa(i)); ok {
-			if matched, pt := m.match(&src, p+"_"+strconv.Itoa(i), tpl, th); matched {
+			if matched, pt := m.match(&src, p+"_"+strconv.Itoa(i), tpl, o); matched {
 				return true, pt
 			}
 		} else {
@@ -61,7 +82,7 @@ func (m *ImageManager) Match(src gocv.Mat, p string, th float32) (bool, image.Po
 	return false, image.Point{}
 }
 
-func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, th float32) (bool, image.Point) {
+func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o MatchOption) (bool, image.Point) {
 	var s = src
 	var t = tpl
 	if src.Type() != gocv.MatTypeCV32FC1 {
@@ -91,9 +112,12 @@ func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, th flo
 	gocv.MatchTemplate(*s, *t, &res, gocv.TmSqdiffNormed, mask)
 
 	v, _, l, _ := gocv.MinMaxLoc(res)
+	if o.PrintVal {
+		m.log.Debugf("matching %s: %.4f at %v (expected: %.4f)", txtTpl, v, l, o.Th)
+	}
 	//m.log.With("path", txtTpl).Debugf("match template min loc: %.4f (expected: %.4f)", v, th)
-	if v < th {
-		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Cols()/2}
+	if v < o.Th {
+		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Rows()/2}
 	}
 
 	return false, image.Point{}
