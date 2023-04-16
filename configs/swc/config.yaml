@@ -1,0 +1,25 @@
+mode: storyQuest 
+# mode: explorationQuest
+# mode: monsterStory
+
+# pvp
+# every 30 minutes
+# look for quick match
+# 10 times
+
+# Path of growth
+# 6 times per day
+# reset with crystal
+
+resetAt: 00:00
+
+tasks:
+- repeatQuest:
+    enable: true
+    resetWithCrystalPerDay: 2
+    map: rudelin # tesca, ayah, flurence, rukurangma, kontana
+    rewardTicket: pathOfGrowth # essenceDungeon, challengeArena
+- challengeArena:
+    enable: true
+
+

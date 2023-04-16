@@ -2,6 +2,7 @@ package domain
 
 import (
 	"image"
+	"time"
 
 	"gocv.io/x/gocv"
 )
@@ -25,4 +26,13 @@ type Screen interface {
 	MouseDrag(x1, y1, x2, y2 int)
 	KeyTap(key string, args ...any)
 	MouseMove(x, y int)
+}
+
+type Task interface {
+	Do(index int, now time.Time) bool
+
+	// GetState returns state in string
+	GetState() string
+
+
 }

@@ -1,0 +1,5 @@
+
+repeatQuest:
+  doneAt: <time>
+  count: 0
+  resetWithCrystalCount: 0

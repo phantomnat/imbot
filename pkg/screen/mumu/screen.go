@@ -150,6 +150,7 @@ func (s *Screen) GetRect() (domain.Rect, error) {
 	if !s.getRect() {
 		return domain.Rect{}, errors.Errorf("cannot get window rect (hwnd: %x)", s.hwnd)
 	}
+	// TODO: resize screen
 
 	windowRect := (&domain.Rect{}).FromRect(s.windowRect)
 	clientRect := (&domain.Rect{}).FromRect(s.clientRect)
