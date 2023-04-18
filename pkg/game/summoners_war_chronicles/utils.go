@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/go-vgo/robotgo"
+	"github.com/pkg/errors"
 	"gocv.io/x/gocv"
 
 	"github.com/phantomnat/imbot/pkg/domain"
@@ -20,7 +21,11 @@ func (b *SummonersWar) WindowSize() domain.Rect {
 
 func (b *SummonersWar) GetMat() (gocv.Mat, error) {
 	if err := b.screen.CaptureToBuffer(); err != nil {
-		b.log.Errorf("capture image to buffer: %+v", err)
+		if errors.Is(err, domain.ErrNeedToSkipFrame) {
+			b.log.Info(err.Error())
+		} else {
+			b.log.Errorf("capture image to buffer: %+v", err)
+		}
 		return gocv.NewMat(), err
 	}
 

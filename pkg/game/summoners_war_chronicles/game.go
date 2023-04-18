@@ -45,7 +45,11 @@ type SummonersWar struct {
 var _ domain.Game = (*SummonersWar)(nil)
 
 func New(imgManager *im.ImageManager) (*SummonersWar, error) {
-	sc, err := mumu.NewFromTitle(WindowTitle)
+	sc, err := mumu.NewFromTitle(WindowTitle, mumu.Option{
+		AutoResize: true,
+		Width:      1280,
+		Height:     720,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +131,6 @@ func (b *SummonersWar) handleState() {
 	// capture
 	m, err := b.GetMat()
 	if err != nil {
-		b.log.Errorf("cannot capture screen: %+v", err)
 		return
 	}
 	defer m.Close()

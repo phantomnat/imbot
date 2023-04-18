@@ -19,16 +19,25 @@ import (
 type Screen struct {
 	hwnd       win.HWND
 	childHwnd  win.HWND
-	windowRect win.RECT
-	clientRect win.RECT
+	windowRect domain.Rect
+	clientRect domain.Rect
 	screenRect domain.Rect
 	log        *zap.SugaredLogger
 	buf        domain.ImageBuffer
+	o          Option
+}
+
+type Option struct {
+	PackageName  string
+	ActivityName string
+	AutoResize   bool
+	Width        int
+	Height       int
 }
 
 var _ domain.Screen = (*Screen)(nil)
 
-func NewFromTitle(title string) (*Screen, error) {
+func NewFromTitle(title string, o Option) (*Screen, error) {
 	hwnd := robotgo.FindWindow(title)
 	if hwnd == 0 {
 		return nil, errors.Errorf("cannot find window '%s'", title)
@@ -36,6 +45,7 @@ func NewFromTitle(title string) (*Screen, error) {
 	s := &Screen{
 		hwnd: hwnd,
 		log:  zap.S().Named("mumu"),
+		o:    o,
 	}
 
 	printme := func(hwnd uintptr, lParam uintptr) uintptr {
@@ -132,7 +142,7 @@ func (s *Screen) MouseDrag(x1, y1, x2, y2 int) {
 			y1++
 		}
 		win.PostMessage(hwnd, win.WM_MOUSEMOVE, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
-		time.Sleep(3*time.Millisecond)
+		time.Sleep(3 * time.Millisecond)
 	}
 	win.PostMessage(hwnd, win.WM_LBUTTONUP, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
 	time.Sleep(50 * time.Millisecond)
@@ -150,22 +160,22 @@ func (s *Screen) GetRect() (domain.Rect, error) {
 	if !s.getRect() {
 		return domain.Rect{}, errors.Errorf("cannot get window rect (hwnd: %x)", s.hwnd)
 	}
-	// TODO: resize screen
 
-	windowRect := (&domain.Rect{}).FromRect(s.windowRect)
-	clientRect := (&domain.Rect{}).FromRect(s.clientRect)
+	if s.ensureScreenSize() {
+		return domain.Rect{}, errors.Wrap(domain.ErrNeedToSkipFrame, "ensure screen size")
+	}
 
 	// s.log.Debugf("window: %v", windowRect)
 	// s.log.Debugf("client: %v", clientRect)
 
-	marginLeft := (windowRect.Width - clientRect.Width) / 2
-	marginTop := windowRect.Height - clientRect.Height - marginLeft
+	marginLeft := (s.windowRect.Width - s.clientRect.Width) / 2
+	marginTop := s.windowRect.Height - s.clientRect.Height - marginLeft
 
 	s.screenRect = domain.Rect{
-		X:      windowRect.X + marginLeft,
-		Y:      windowRect.Y + marginTop,
-		Width:  clientRect.Width,
-		Height: clientRect.Height,
+		X:      s.windowRect.X + marginLeft,
+		Y:      s.windowRect.Y + marginTop,
+		Width:  s.clientRect.Width,
+		Height: s.clientRect.Height,
 	}
 	return s.screenRect, nil
 }
@@ -174,12 +184,16 @@ func (s *Screen) getRect() bool {
 	if s.hwnd == 0 {
 		return false
 	}
-	if !win.GetWindowRect(s.childHwnd, &s.windowRect) {
+	winRect := win.RECT{}
+	if !win.GetWindowRect(s.childHwnd, &winRect) {
 		return false
 	}
-	if !win.GetClientRect(s.childHwnd, &s.clientRect) {
+	clientRect := win.RECT{}
+	if !win.GetClientRect(s.childHwnd, &clientRect) {
 		return false
 	}
+	s.windowRect.FromRect(winRect)
+	s.clientRect.FromRect(clientRect)
 	return true
 }
 

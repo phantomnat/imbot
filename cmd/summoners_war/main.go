@@ -12,7 +12,6 @@ import (
 	summoners_war_chronicles "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles"
 	"github.com/phantomnat/imbot/pkg/im"
 	pkg "github.com/phantomnat/imbot/pkg/logger"
-	"github.com/phantomnat/imbot/pkg/screen/mumu"
 	"github.com/phantomnat/imbot/pkg/ui"
 )
 
@@ -21,7 +20,6 @@ func main() {
 	log := zap.S().Named("main")
 	imgProcManager := im.GetImageManager()
 
-	mumu.NewFromTitle("Chronicles - MuMu Player")
 	game, err := summoners_war_chronicles.New(imgProcManager)
 	if err != nil {
 		log.Fatalf("cannot init summoners war: chronicles: %+v", err)

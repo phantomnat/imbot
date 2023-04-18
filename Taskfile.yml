@@ -1,0 +1,17 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GREETING: Hello, World!
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  build:
+    cmds:
+      - rsrc -manifest imbot.exe.manifest -o imbot.syso
+      - go build -o imbot.exe ./cmd/summoners_war
