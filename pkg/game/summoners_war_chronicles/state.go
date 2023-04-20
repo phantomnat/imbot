@@ -7,6 +7,12 @@ var (
 	StartState   BotState = "start"
 	EndState     BotState = "end"
 
-	ActivateQuest BotState = "activate-quest"
 	DoQuest BotState = "do-quest"
+
+	StateExecuteTask     BotState = "execute_task"
+	StateExitCurrentTask BotState = "exit_current_task"
+)
+
+const (
+	TaskUnknown = -1
 )

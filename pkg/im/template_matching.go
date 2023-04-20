@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"gocv.io/x/gocv"
+
+	"github.com/phantomnat/imbot/pkg/domain"
 )
 
 const (
@@ -41,31 +43,19 @@ func (m *ImageManager) MatchN(src gocv.Mat, p string, th float32) (bool, image.P
 	return m.Match(src, p, th)
 }
 
-type MatchOption struct {
-	Path      string
-	Mask      *gocv.Mat
-	HasMask   bool
-	Th        float32
-	PrintVal  bool
-	Normalize bool
-}
-
-func (o *MatchOption) applyDefault() {
-	if o == nil {
-		return
-	}
+func applyDefault(o *domain.MatchOption) {
 	if o.Th == 0 {
 		o.Th = thOnePercent
 	}
 }
 
 // Match from <p>.1 to <p>.10
-func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...MatchOption) (bool, image.Point) {
-	o := MatchOption{}
+func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...domain.MatchOption) (bool, image.Point) {
+	o := domain.MatchOption{}
 	if len(opt) > 0 {
 		o = opt[0]
 	}
-	o.applyDefault()
+	applyDefault(&o)
 	if ok, tpl := m.Get(p + "_mask"); ok {
 		o.Mask = tpl
 		o.HasMask = true
@@ -92,7 +82,7 @@ func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...MatchOpt
 	return false, image.Point{}
 }
 
-func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o MatchOption) (bool, image.Point) {
+func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o domain.MatchOption) (bool, image.Point) {
 	var s = src
 	var t = tpl
 	var mask = o.Mask

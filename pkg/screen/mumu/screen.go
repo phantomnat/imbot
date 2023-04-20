@@ -1,13 +1,13 @@
 package mumu
 
 import (
+	"context"
 	"image"
 	"reflect"
 	"syscall"
 	"time"
 	"unsafe"
 
-	"github.com/go-vgo/robotgo"
 	"github.com/lxn/win"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -25,22 +25,68 @@ type Screen struct {
 	log        *zap.SugaredLogger
 	buf        domain.ImageBuffer
 	o          Option
+	ctrlHwnd   win.HWND
+	adbClient  *ADBClient
 }
 
 type Option struct {
-	PackageName  string
-	ActivityName string
-	AutoResize   bool
-	Width        int
-	Height       int
+	Title         string
+	PackageName   string
+	ActivityName  string
+	AutoResize    bool
+	Width         int
+	Height        int
+	MouseMargin   image.Point
+	ADBPort       int
+	ADBDeviceName string
 }
 
 var _ domain.Screen = (*Screen)(nil)
 
-func NewFromTitle(title string, o Option) (*Screen, error) {
-	hwnd := robotgo.FindWindow(title)
+func NewBlueStack(o Option) (*Screen, error) {
+	hwnd := win.FindWindow(nil, syscall.StringToUTF16Ptr(o.Title))
 	if hwnd == 0 {
-		return nil, errors.Errorf("cannot find window '%s'", title)
+		return nil, errors.Errorf("cannot find window '%s'", o.Title)
+	}
+	s := &Screen{
+		hwnd: hwnd,
+		log:  zap.S().Named("bluestack"),
+		o:    o,
+	}
+	s.o.ADBPort = 5555
+
+	findChild := func(hwnd uintptr, lParam uintptr) uintptr {
+		// spew.Dump(hwnd)
+		s.childHwnd = win.HWND(hwnd)
+		return 0
+	}
+
+	win.EnumChildWindows(hwnd, syscall.NewCallback(findChild), 0)
+
+	if s.childHwnd == 0 {
+		return nil, errors.Errorf("cannot find child window '%s'", o.Title)
+	}
+
+	if rect, err := s.GetRect(); err == nil {
+		// s.o.MouseMargin = image.Pt(s.clientRect.X-s.windowRect.X, s.clientRect.Y-s.windowRect.Y)
+		s.log.Infof("screen: %v, mouse margin: %v", rect, s.o.MouseMargin)
+	}
+	s.ctrlHwnd = s.childHwnd
+
+	var err error
+
+	s.adbClient, err = NewADBClient(context.Background(), s.o.ADBPort)
+	if err != nil {
+		return nil, errors.Wrap(err, "create adb client")
+	}
+
+	return s, nil
+}
+
+func NewMumu(o Option) (*Screen, error) {
+	hwnd := win.FindWindow(nil, syscall.StringToUTF16Ptr(o.Title))
+	if hwnd == 0 {
+		return nil, errors.Errorf("cannot find window '%s'", o.Title)
 	}
 	s := &Screen{
 		hwnd: hwnd,
@@ -48,23 +94,28 @@ func NewFromTitle(title string, o Option) (*Screen, error) {
 		o:    o,
 	}
 
-	printme := func(hwnd uintptr, lParam uintptr) uintptr {
-		// spew.Dump(hwnd)
+	findChild := func(hwnd uintptr, lParam uintptr) uintptr {
 		s.childHwnd = win.HWND(hwnd)
 		return 0
 	}
-
-	win.EnumChildWindows(hwnd, syscall.NewCallback(printme), 0)
+	win.EnumChildWindows(hwnd, syscall.NewCallback(findChild), 0)
 
 	if s.childHwnd == 0 {
-		return nil, errors.Errorf("cannot find child window '%s'", title)
+		return nil, errors.Errorf("cannot find child window '%s'", o.Title)
 	}
 
-	rect, err := s.GetRect()
-	if err != nil {
-		return nil, errors.Errorf("connect get rect: %+v", err)
+	if rect, err := s.GetRect(); err == nil {
+		s.log.Infof("screen: %v", rect)
 	}
-	s.log.Infof("screen: %v", rect)
+	s.ctrlHwnd = s.childHwnd
+
+	var err error
+
+	s.adbClient, err = NewADBClient(context.Background(), s.o.ADBPort)
+	if err != nil {
+		return nil, errors.Wrap(err, "create adb client")
+	}
+
 	return s, nil
 }
 
@@ -98,25 +149,23 @@ func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
 }
 
 func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
-	hwnd := s.childHwnd
+	hwnd := s.ctrlHwnd
 	if hwnd == 0 {
 		return
 	}
-	nx := x + s.screenRect.X
-	ny := y + s.screenRect.Y
-	s.log.Debugf("move and click at %d, %d", nx, ny)
-	// s.move(nx, ny)
-	// robotgo.MilliSleep(80)
-	// robotgo.Click(args...)
-	win.PostMessage(hwnd,
-		win.WM_LBUTTONDOWN,
-		0,
-		uintptr(win.MAKELONG(uint16(x), uint16(y))))
-	time.Sleep(60 * time.Millisecond)
-	win.PostMessage(hwnd,
-		win.WM_LBUTTONUP,
-		0,
-		uintptr(win.MAKELONG(uint16(x), uint16(y))))
+	s.log.Debugf("click at (%d, %d)", x, y)
+	s.adbClient.Tap(x, y)
+	// s.log.Debugf("click at (%d, %d)", x+s.o.MouseMargin.X, y+s.o.MouseMargin.Y)
+	// win.PostMessage(hwnd,
+	// 	win.WM_LBUTTONDOWN,
+	// 	0,
+	// 	uintptr(win.MAKELONG(uint16(x), uint16(y))))
+	// time.Sleep(10 * time.Millisecond)
+	// win.PostMessage(hwnd,
+	// 	win.WM_LBUTTONUP,
+	// 	0,
+	// 	uintptr(win.MAKELONG(uint16(x), uint16(y))))
+	// time.Sleep(5 * time.Millisecond)
 }
 
 func makeLongFromP(p image.Point) uintptr {
@@ -165,18 +214,7 @@ func (s *Screen) GetRect() (domain.Rect, error) {
 		return domain.Rect{}, errors.Wrap(domain.ErrNeedToSkipFrame, "ensure screen size")
 	}
 
-	// s.log.Debugf("window: %v", windowRect)
-	// s.log.Debugf("client: %v", clientRect)
-
-	marginLeft := (s.windowRect.Width - s.clientRect.Width) / 2
-	marginTop := s.windowRect.Height - s.clientRect.Height - marginLeft
-
-	s.screenRect = domain.Rect{
-		X:      s.windowRect.X + marginLeft,
-		Y:      s.windowRect.Y + marginTop,
-		Width:  s.clientRect.Width,
-		Height: s.clientRect.Height,
-	}
+	s.screenRect = s.clientRect
 	return s.screenRect, nil
 }
 
@@ -185,15 +223,17 @@ func (s *Screen) getRect() bool {
 		return false
 	}
 	winRect := win.RECT{}
-	if !win.GetWindowRect(s.childHwnd, &winRect) {
+	if !win.GetWindowRect(s.hwnd, &winRect) {
 		return false
 	}
 	clientRect := win.RECT{}
-	if !win.GetClientRect(s.childHwnd, &clientRect) {
+	if !win.GetWindowRect(s.childHwnd, &clientRect) {
 		return false
 	}
 	s.windowRect.FromRect(winRect)
 	s.clientRect.FromRect(clientRect)
+	// s.log.Debugf("window: %v", s.windowRect)
+	// s.log.Debugf("client: %v", s.clientRect)
 	return true
 }
 
@@ -285,23 +325,4 @@ func (s *Screen) GetMat() (gocv.Mat, error) {
 	// fmt.Printf("src ch: %d, type: %v\n", out.Channels(), out.Type())
 
 	return out, nil
-}
-
-// https://github.com/AutoHotkey/AutoHotkey/blob/master/Source/keyboard_mouse.cpp#L2285
-func (s *Screen) move(x, y int) {
-	screenWidth := win.GetSystemMetrics(win.SM_CXSCREEN)
-	screenHeight := win.GetSystemMetrics(win.SM_CYSCREEN)
-
-	aX := ((65536 * int32(x)) / screenWidth) + 1
-	aY := (((65536 * int32(y)) / screenHeight) + 1)
-
-	input := win.MOUSE_INPUT{
-		Type: win.INPUT_MOUSE,
-		Mi: win.MOUSEINPUT{
-			Dx:      aX,
-			Dy:      aY,
-			DwFlags: win.MOUSEEVENTF_MOVE | win.MOUSEEVENTF_ABSOLUTE,
-		},
-	}
-	win.SendInput(1, unsafe.Pointer(&input), int32(unsafe.Sizeof(input)))
 }

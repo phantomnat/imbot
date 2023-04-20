@@ -279,22 +279,22 @@ func (s *Screen) unicodeType(key string) {
 }
 
 func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
-	s.MouseMoveAndClick(pt.X, pt.Y, args...)
+	// s.MouseMoveAndClick(pt.X, pt.Y, args...)
 }
 
 func (s *Screen) MouseMoveAndClickByRect(roi image.Rectangle, args ...any) {
-	x := roi.Min.X + (roi.Dx() / 2)
-	y := roi.Min.Y + (roi.Dy() / 2)
-	s.MouseMoveAndClick(x, y, args...)
+	// x := roi.Min.X + (roi.Dx() / 2)
+	// y := roi.Min.Y + (roi.Dy() / 2)
+	// s.MouseMoveAndClick(x, y, args...)
 }
 
 func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
-	nx := x + s.screenRect.X
-	ny := y + s.screenRect.Y
-	s.log.Debugf("move and click at %d, %d", nx, ny)
-	s.move(nx, ny)
-	robotgo.MilliSleep(80)
-	robotgo.Click()
+	// nx := x + s.screenRect.X
+	// ny := y + s.screenRect.Y
+	// s.log.Debugf("move and click at %d, %d", nx, ny)
+	// s.move(nx, ny)
+	// robotgo.MilliSleep(80)
+	// robotgo.Click()
 	// SentMouseEvent(MOUSEEVENTF_LEFTDOWN)
 	// robotgo.MilliSleep(100)
 	// SentMouseEvent(MOUSEEVENTF_LEFTUP)

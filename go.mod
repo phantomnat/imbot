@@ -12,6 +12,7 @@ require (
 	gocv.io/x/gocv v0.31.0
 	golang.org/x/sys v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -59,5 +60,4 @@ require (
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	honnef.co/go/js/dom v0.0.0-20210725211120-f030747120f2 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )

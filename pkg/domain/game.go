@@ -2,7 +2,6 @@ package domain
 
 import (
 	"image"
-	"time"
 
 	"gocv.io/x/gocv"
 )
@@ -28,11 +27,56 @@ type Screen interface {
 	MouseMove(x, y int)
 }
 
+type TaskState int
+
+const (
+	TaskStateBegin TaskState = 0
+	TaskStateEnd   TaskState = 9999
+)
+
 type Task interface {
-	Do(index int, now time.Time) bool
+	GetName() string
+
+	IsReady() bool
+
+	// NeedMainScreen indicates that task required to go to main screen before start
+	IsNeedMainScreen() bool
+
+	// CanInterrupt returns true if task can be cancel
+	CanInterrupt() bool
+
+	// Do the task
+	Do(m gocv.Mat) bool
+
+	// Exit the current task and go to main screen
+	RequestExit()
 
 	// GetState returns state in string
 	GetState() string
+}
 
+type MatchOption struct {
+	Path      string
+	Mask      *gocv.Mat
+	HasMask   bool
+	Th        float32
+	PrintVal  bool
+	Normalize bool
+}
 
+type Manager interface {
+	// ExitTask resets the current task index to unknown
+	ExitTask()
+
+	MatchInROI(m gocv.Mat, roi image.Rectangle, o MatchOption) (bool, image.Point)
+
+	Click(x, y int)
+	ClickPt(pt image.Point)
+
+	StatusManager
+}
+
+type StatusManager interface {
+	LoadStatus(index int, key string) any
+	SaveStatus(index int, key string, v any)
 }

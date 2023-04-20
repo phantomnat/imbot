@@ -3,7 +3,6 @@ package summonerswar
 import (
 	"image"
 
-	"github.com/go-vgo/robotgo"
 	"github.com/pkg/errors"
 	"gocv.io/x/gocv"
 
@@ -11,7 +10,6 @@ import (
 )
 
 func (b *SummonersWar) SentESC() {
-	robotgo.KeyTap(robotgo.Escape)
 }
 
 func (b *SummonersWar) WindowSize() domain.Rect {
@@ -38,4 +36,12 @@ func (b *SummonersWar) GetScreen() domain.Screen {
 
 func ptFromROIandPt(roi image.Rectangle, pt image.Point) image.Point {
 	return image.Point{X: pt.X + roi.Min.X, Y: pt.Y + roi.Min.Y}
+}
+
+func (b *SummonersWar) Click(x, y int) {
+	b.screen.MouseMoveAndClick(x, y)
+}
+
+func (b *SummonersWar) ClickPt(pt image.Point) {
+	b.screen.MouseMoveAndClickByPoint(pt)
 }

@@ -5,7 +5,7 @@ import (
 
 	"gocv.io/x/gocv"
 
-	"github.com/phantomnat/imbot/pkg/im"
+	"github.com/phantomnat/imbot/pkg/domain"
 )
 
 func (b *SummonersWar) ToggleSendCaptureImage(isSend bool, cb ...func(image.Image)) {
@@ -53,7 +53,7 @@ func (b *SummonersWar) imMatchDefaultInROI(m gocv.Mat, roi image.Rectangle, path
 	return ok, pt
 }
 
-func (b *SummonersWar) imMatchInROI(m gocv.Mat, roi image.Rectangle, o im.MatchOption) (bool, image.Point) {
+func (b *SummonersWar) MatchInROI(m gocv.Mat, roi image.Rectangle, o domain.MatchOption) (bool, image.Point) {
 	mROI := m.Region(roi)
 	defer mROI.Close()
 	ok, pt := b.im.Match(mROI, srcImageDir+"."+o.Path, o.Th, o)

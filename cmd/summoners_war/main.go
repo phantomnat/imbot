@@ -2,11 +2,7 @@ package main
 
 import (
 	"context"
-	"path/filepath"
-	"strings"
-	"time"
 
-	hook "github.com/robotn/gohook"
 	"go.uber.org/zap"
 
 	summoners_war_chronicles "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles"
@@ -27,25 +23,25 @@ func main() {
 	}
 
 	uiHandler := ui.New(game)
-	log.Infof("registering hooks")
+	// log.Infof("registering hooks")
 
-	hook.Register(hook.KeyDown, []string{"p", "ctrl"}, func(event hook.Event) {
-		uiHandler.OnBtnToggleRunClicked()
-	})
+	// hook.Register(hook.KeyDown, []string{"p", "ctrl"}, func(event hook.Event) {
+	// 	uiHandler.OnBtnToggleRunClicked()
+	// })
 
 	// hook.Register(hook.KeyDown, []string{"f", "ctrl"}, func(event hook.Event) {
 	// 	game.GetScreen().GetCurrentCursorPos()
 	// })
 
-	hook.Register(hook.KeyDown, []string{"w", "ctrl"}, func(event hook.Event) {
-		log.Infof("screen capturing...")
-		today := strings.ReplaceAll(time.Now().Format(time.RFC3339Nano), ":", "-")
-		filePath := filepath.Join("cap", today+".png")
-		game.GetScreen().CaptureMatAndSave(filePath)
-	})
+	// hook.Register(hook.KeyDown, []string{"w", "ctrl"}, func(event hook.Event) {
+	// 	log.Infof("screen capturing...")
+	// 	today := strings.ReplaceAll(time.Now().Format(time.RFC3339Nano), ":", "-")
+	// 	filePath := filepath.Join("cap", today+".png")
+	// 	game.GetScreen().CaptureMatAndSave(filePath)
+	// })
 
-	s := hook.Start()
-	hook.Process(s)
+	// s := hook.Start()
+	// hook.Process(s)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
