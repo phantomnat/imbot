@@ -1,7 +1,6 @@
 package summonerswar
 
 import (
-	"fmt"
 	"image"
 	"os"
 	"sync"
@@ -17,6 +16,7 @@ import (
 	"github.com/phantomnat/imbot/pkg/im"
 	"github.com/phantomnat/imbot/pkg/screen/mumu"
 
+	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 )
 
@@ -127,14 +127,15 @@ func (b *SummonersWar) LoadTasks() {
 	for i := range b.setting.Tasks {
 		task := b.setting.Tasks[i]
 		switch {
-		case task.RepeatQuest != nil:
-			// b.tasks = append(b.tasks, )
-		case task.TaskChallengeArena != nil:
-			b.tasks = append(b.tasks, challenge_arena.NewChallengeArenaTask(index, fmt.Sprintf("%T", task.TaskChallengeArena), b))
-			index++
+		case task.ChallengeArena != nil:
+			b.tasks = append(b.tasks, challenge_arena.NewChallengeArenaTask(index, b, *task.ChallengeArena))
+		case task.AutoFarm != nil:
+			b.tasks = append(b.tasks, auto_farm.NewAutoFarm(index, b, *task.AutoFarm))
+		default:
+			continue
 		}
+		index++
 	}
-	b.log.Infof("%d tasks loaded", len(b.setting.Tasks))
 
 	// load task status
 	status, err := LoadTaskStatus(StatusFile)
@@ -143,14 +144,23 @@ func (b *SummonersWar) LoadTasks() {
 		b.taskStatuses = make([]any, len(b.tasks))
 	} else {
 		b.taskStatuses = status.Tasks
-		b.log.Infof("status reloaded")
+		
+		for i := 0; i < len(b.tasks) && i < len(b.taskStatuses); i++ {
+			b.tasks[i].LoadStatus(b.taskStatuses[i])
+		}
+
+		// add more statuses
 		if len(b.taskStatuses) < len(b.tasks) {
 			diff := len(b.tasks) - len(b.taskStatuses)
 			for i := 0; i < diff; i++ {
 				b.taskStatuses = append(b.taskStatuses, nil)
 			}
 		}
+
+		b.log.Infof("status reloaded")
 	}
+
+	b.log.Infof("%d tasks loaded", index)
 }
 
 // Run the main loop for bot

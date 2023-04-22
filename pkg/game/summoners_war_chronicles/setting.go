@@ -5,6 +5,9 @@ import (
 
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
+
+	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
+	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 )
 
 type BotMode string
@@ -67,17 +70,6 @@ func LoadTaskStatus(fileName string) (TaskStatus, error) {
 }
 
 type TaskSetting struct {
-	RepeatQuest        *TaskRepeatQuestSetting `json:"repeatQuest"`
-	TaskChallengeArena *TaskChallengeArena     `json:"challengeArena"`
-}
-
-type TaskRepeatQuestSetting struct {
-}
-
-type TaskChallengeArena struct {
-	Enable bool
-	Times  int
-}
-
-type TaskBrawlArena struct {
+	ChallengeArena *challenge_arena.TaskSetting
+	AutoFarm       *auto_farm.TaskSetting
 }

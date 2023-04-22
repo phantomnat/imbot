@@ -26,9 +26,15 @@ var (
 	ROIMainScreen = struct {
 		CoinIcon    image.Rectangle
 		CrystalIcon image.Rectangle
+
+		AutoBattleIcon image.Rectangle
+		PtAutoBattle image.Point
 	}{
 		CoinIcon:    Rect(517, 15, 37, 38),
 		CrystalIcon: Rect(646, 13, 36, 41),
+
+		AutoBattleIcon: Rect(925, 654, 47, 48),
+		PtAutoBattle: Pt(950, 680),
 	}
 
 	// Main menu

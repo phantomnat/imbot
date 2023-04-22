@@ -1,6 +1,7 @@
 package challenge_arena
 
 import (
+	"fmt"
 	"image"
 	"time"
 
@@ -33,7 +34,12 @@ var (
 
 type task struct {
 	tasks.BaseTask
-	status TaskStatus
+	setting TaskSetting
+	status  TaskStatus
+}
+
+type TaskSetting struct {
+	Enable bool
 }
 
 type TaskStatus struct {
@@ -55,12 +61,13 @@ type DailyStats struct {
 
 var _ domain.Task = (*task)(nil)
 
-func NewChallengeArenaTask(index int, name string, manager domain.Manager) domain.Task {
+func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSetting) domain.Task {
 	t := &task{
+		setting: setting,
 		BaseTask: tasks.BaseTask{
 			Im:      manager.GetImageManager(),
 			Index:   index,
-			Name:    name,
+			Name:    fmt.Sprintf("%T", setting),
 			Manager: manager,
 			Log:     zap.S().Named("task").Named("challenge-arena"),
 			StateTexts: map[domain.TaskState]string{
@@ -81,6 +88,14 @@ func NewChallengeArenaTask(index int, name string, manager domain.Manager) domai
 	return t
 }
 
+func (t *task) LoadStatus(in any) {
+	err := t.ConvertTo(in, &t.status)
+	if err != nil {
+		t.Log.Warnf("reset status, cannot the current: %+v", err)
+		t.status = TaskStatus{}
+	}
+}
+
 func (t *task) Do(m gocv.Mat) bool {
 	if t.Exiting {
 		// TODO: handle exit request
@@ -89,7 +104,6 @@ func (t *task) Do(m gocv.Mat) bool {
 	switch t.State {
 	case domain.TaskStateBegin:
 		// load status
-		t.LoadStatus(&t.status)
 		if t.status.Name == "" {
 			t.status.Name = t.GetName()
 		}
@@ -355,7 +369,6 @@ func (t *task) Do(m gocv.Mat) bool {
 }
 
 func (t *task) IsReady() bool {
-	t.LoadStatus(&t.status)
 	if t.status.NextExecuted.IsZero() {
 		return true
 	}

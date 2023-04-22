@@ -36,6 +36,8 @@ func (t *BaseTask) GetName() string {
 func (t *BaseTask) Do(_ gocv.Mat) bool {
 	return false
 }
+func (t *BaseTask) LoadStatus(in any) {
+}
 
 func (t *BaseTask) GetState() string {
 	return t.StateTexts[t.State]
@@ -77,11 +79,7 @@ func (t *BaseTask) SaveStatus(v any) {
 	t.Manager.SaveStatus(t.Index, t.Name, v)
 }
 
-func (t *BaseTask) LoadStatus(in any) {
-	_ = convertTo(t.Manager.LoadStatus(t.Index, t.Name), in)
-}
-
-func convertTo(in any, out any) error {
+func (t *BaseTask) ConvertTo(in, out any) error {
 	buf := &bytes.Buffer{}
 	err := json.NewEncoder(buf).Encode(in)
 	if err != nil {
