@@ -63,7 +63,7 @@ func (c *ADBClient) deviceURL() string {
 }
 
 func (c *ADBClient) RunShell(in string, args ...string) {
-	start := time.Now()
+	// start := time.Now()
 	cmd := in + " " + strings.Join(args, " ") + "\n"
 	c.log.Debugf("sending %s", cmd)
 	io.WriteString(c.sessionWriter, cmd)
@@ -80,7 +80,7 @@ func (c *ADBClient) RunShell(in string, args ...string) {
 	// 	HideWindow: true,
 	// }
 	// _, _ = cmd.CombinedOutput()
-	c.log.Debugf("click took %d ms", time.Since(start).Milliseconds())
+	// c.log.Debugf("click took %d ms", time.Since(start).Milliseconds())
 	// buf := &bytes.Buffer{}
 	// session := exec.Command("adb", "shell")
 	// session.SysProcAttr.HideWindow = true
@@ -98,7 +98,7 @@ func (c *ADBClient) Tap(x, y int) {
 }
 
 func (c *ADBClient) Swipe(x1, y1, x2, y2, durationMs int) {
-	c.RunShell("input", "swipe", strconv.Itoa(x1), strconv.Itoa(y1), strconv.Itoa(x2), strconv.Itoa(y2), strconv.Itoa(durationMs))
+	c.RunShell("input", "draganddrop", strconv.Itoa(x1), strconv.Itoa(y1), strconv.Itoa(x2), strconv.Itoa(y2), strconv.Itoa(durationMs))
 	time.Sleep(time.Duration(durationMs) * time.Millisecond)
 }
 

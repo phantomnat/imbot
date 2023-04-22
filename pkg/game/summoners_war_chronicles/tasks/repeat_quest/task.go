@@ -1,24 +1,18 @@
 package summonerswar
 
-import (
-	"time"
+// type task struct {
+// }
 
-	"github.com/phantomnat/imbot/pkg/domain"
-)
+// const taskName = "repeatQuest"
 
-type task struct {
-}
+// func New() domain.Task {
+// 	// return &task{}
+// }
 
-const taskName = "repeatQuest"
+// func (t *task) Do(index int, now time.Time) bool {
+// 	return false
+// }
 
-func New() domain.Task {
-	return &task{}
-}
-
-func (t *task) Do(index int, now time.Time) bool {
-	return false
-}
-
-func (t *task) GetState() string {
-	return ""
-}
+// func (t *task) GetState() string {
+// 	return ""
+// }

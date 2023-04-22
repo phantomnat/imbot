@@ -2,7 +2,6 @@ package summonerswar
 
 import (
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
@@ -16,7 +15,15 @@ var (
 	BotModeMonsterStory     BotMode = "monsterStory"
 )
 
+type EmuType string
+
+var (
+	EmuTypeBlueStack EmuType = "bluestack"
+	EmuTypeMumu      EmuType = "mumu"
+)
+
 type Setting struct {
+	Emu  EmuType
 	Mode BotMode
 
 	Tasks []TaskSetting
@@ -27,7 +34,19 @@ type TaskStatus struct {
 }
 
 func LoadSetting(fileName string) (Setting, error) {
-	return laodYAMLFile[Setting](fileName)
+	s, err := laodYAMLFile[Setting](fileName)
+	if err != nil {
+		return s, err
+	}
+
+	// validate apply default
+	switch s.Emu {
+	case EmuTypeBlueStack, EmuTypeMumu:
+	default:
+		s.Emu = EmuTypeMumu
+	}
+
+	return s, nil
 }
 
 func laodYAMLFile[T any](fileName string) (T, error) {

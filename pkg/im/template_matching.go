@@ -16,62 +16,90 @@ const (
 )
 
 func (m *ImageManager) MatchDefault(src gocv.Mat, p ...string) (bool, image.Point) {
-	return m.Match(src, strings.Join(p, "."), thOnePercent)
+	return m.matchWithMask(src, domain.MatchOption{
+		Path: strings.Join(p, "."),
+		Th:   thOnePercent,
+	})
 }
 
 // MatchOneP match should below 0.01 threshold value
-func (m *ImageManager) MatchOneP(src gocv.Mat, p string) (bool, image.Point) {
-	return m.Match(src, p, thOnePercent)
-}
+// func (m *ImageManager) MatchOneP(src gocv.Mat, p string) (bool, image.Point) {
+// 	return m.matchWithMask(src, p, thOnePercent)
+// }
 
-func (m *ImageManager) MatchOneTenth(src gocv.Mat, p string) (bool, image.Point) {
-	return m.Match(src, p, thOneTenthPercent)
-}
-
-// Match from <p>.1 to <p>.10
-func (m *ImageManager) MatchNDefault(src gocv.Mat, p string) (bool, image.Point) {
-	return m.Match(src, p, thOnePercent)
-}
+// func (m *ImageManager) MatchOneTenth(src gocv.Mat, p string) (bool, image.Point) {
+// 	return m.matchWithMask(src, p, thOneTenthPercent)
+// }
 
 // Match from <p>.1 to <p>.10
-func (m *ImageManager) MatchNOneTenth(src gocv.Mat, p string) (bool, image.Point) {
-	return m.Match(src, p, thOneTenthPercent)
-}
+// func (m *ImageManager) MatchNDefault(src gocv.Mat, p string) (bool, image.Point) {
+// 	return m.matchWithMask(src, p, thOnePercent)
+// }
 
 // Match from <p>.1 to <p>.10
-func (m *ImageManager) MatchN(src gocv.Mat, p string, th float32) (bool, image.Point) {
-	return m.Match(src, p, th)
+// func (m *ImageManager) MatchNOneTenth(src gocv.Mat, p string) (bool, image.Point) {
+// 	return m.matchWithMask(src, p, thOneTenthPercent)
+// }
+
+// Match from <p>.1 to <p>.10
+// func (m *ImageManager) MatchN(src gocv.Mat, p string, th float32) (bool, image.Point) {
+// 	return m.matchWithMask(src, domain.MatchOption{
+// 		Path: p,
+// 		Th:   th,
+// 	})
+// }
+
+func (m *ImageManager) MatchWithOption(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
+	return m.matchWithMask(src, opt)
 }
 
-func applyDefault(o *domain.MatchOption) {
-	if o.Th == 0 {
-		o.Th = thOnePercent
+func (m *ImageManager) MatchMultiPoints(src gocv.Mat, opt domain.MatchOption) []image.Point {
+	m.applyDefaultMatchOption(&opt)
+
+	var points []image.Point
+	if ok, tpl := m.Get(opt.Path); ok {
+		pts := m.templateMatches(&src, tpl, opt)
+		if len(pts) > 0 {
+			points = append(points, pts...)
+		}
+	}
+	for i := 1; i <= 10; i++ {
+		if ok, tpl := m.Get(opt.Path + "_" + strconv.Itoa(i)); ok {
+			pts := m.templateMatches(&src, tpl, opt)
+			if len(pts) > 0 {
+				points = append(points, pts...)
+			}
+		} else {
+			// not found template, so we break
+			break
+		}
+	}
+	return points
+}
+
+func (m *ImageManager) applyDefaultMatchOption(opt *domain.MatchOption) {
+	if opt.Th == 0 {
+		opt.Th = thOnePercent
+	}
+	if ok, tpl := m.Get(opt.Path + "_mask"); ok {
+		opt.Mask = tpl
+		opt.HasMask = true
 	}
 }
 
-// Match from <p>.1 to <p>.10
-func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...domain.MatchOption) (bool, image.Point) {
-	o := domain.MatchOption{}
-	if len(opt) > 0 {
-		o = opt[0]
-	}
-	applyDefault(&o)
-	if ok, tpl := m.Get(p + "_mask"); ok {
-		o.Mask = tpl
-		o.HasMask = true
-	} else {
-		m := gocv.NewMat()
-		o.Mask = &m
-	}
+// matchWithMask from <p>.1 to <p>.10
+func (m *ImageManager) matchWithMask(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
 
-	if ok, tpl := m.Get(p); ok {
-		if matched, pt := m.match(&src, p, tpl, o); matched {
+	m.applyDefaultMatchOption(&opt)
+
+	if ok, tpl := m.Get(opt.Path); ok {
+		if matched, pt := m.templateMatch(&src, tpl, opt); matched {
 			return matched, pt
 		}
 	}
 	for i := 1; i <= 10; i++ {
-		if ok, tpl := m.Get(p + "_" + strconv.Itoa(i)); ok {
-			if matched, pt := m.match(&src, p+"_"+strconv.Itoa(i), tpl, o); matched {
+		if ok, tpl := m.Get(opt.Path + "_" + strconv.Itoa(i)); ok {
+			if matched, pt := m.templateMatch(&src, tpl, opt); matched {
 				return true, pt
 			}
 		} else {
@@ -82,10 +110,64 @@ func (m *ImageManager) Match(src gocv.Mat, p string, th float32, opt ...domain.M
 	return false, image.Point{}
 }
 
-func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o domain.MatchOption) (bool, image.Point) {
+func (m *ImageManager) templateMatch(src *gocv.Mat, tpl *gocv.Mat, o domain.MatchOption) (bool, image.Point) {
+	res := m.rawTemplateMatch(src, tpl, o.Mask)
+	defer res.Close()
+
+	v, _, l, _ := gocv.MinMaxLoc(res)
+
+	if o.PrintVal {
+		m.log.Debugf("matching %s: %.4f at %v (mask: %v, expected: %.4f)", o.Path, v, l, o.HasMask, o.Th)
+	}
+	if v < o.Th {
+		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Rows()/2}
+	}
+
+	return false, image.Point{}
+}
+
+func (m *ImageManager) templateMatches(src *gocv.Mat, tpl *gocv.Mat, o domain.MatchOption) []image.Point {
+	res := m.rawTemplateMatch(src, tpl, o.Mask)
+	defer res.Close()
+
+	var points []image.Point
+
+	for {
+		v, _, l, _ := gocv.MinMaxLoc(res)
+		if o.PrintVal {
+			m.log.Debugf("matching %s: %.4f at %v (res: (%v, %v), mask: %v, expected: %.4f)", o.Path, v, l, res.Cols(), res.Rows(), o.HasMask, o.Th)
+		}
+		if v > o.Th {
+			break
+		}
+
+		points = append(points, image.Pt(l.X, l.Y))
+		res.SetFloatAt(l.Y, l.X, o.Th+1)
+		// rectangle(img, Rect(max_point.x, max_point.y, templ.cols, templ.rows), Scalar(0,255,0), 2);
+		// x2 := l.X + tpl.Cols()
+		// y2 := l.Y + tpl.Rows()
+		// if x2 > res.Cols() {
+		// 	x2 = res.Cols()
+		// }
+		// if y2 > res.Rows() {
+		// 	y2 = res.Rows()
+		// }
+		// gocv.RectangleWithParams(
+		// 	&res,
+		// 	image.Rect(l.X, l.Y, x2, y2),
+		// 	color.RGBA{R: 255, G: 255, B: 255, A: 255},
+		// 	1,
+		// 	gocv.Filled,
+		// 	0,
+		// )
+	}
+	return points
+}
+
+func (m *ImageManager) rawTemplateMatch(src *gocv.Mat, tpl, mask *gocv.Mat) (res gocv.Mat) {
 	var s = src
 	var t = tpl
-	var mask = o.Mask
+
 	if src.Type() != gocv.MatTypeCV32FC1 {
 		m := gocv.NewMatWithSize(src.Rows(), src.Cols(), gocv.MatTypeCV32FC1)
 		src.ConvertTo(&m, gocv.MatTypeCV32FC1)
@@ -98,7 +180,11 @@ func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o doma
 		t = &m
 		defer t.Close()
 	}
-	if mask.Type() != gocv.MatTypeCV32FC1 {
+	if mask == nil {
+		m := gocv.NewMat()
+		mask = &m
+		defer mask.Close()
+	} else if mask.Type() != gocv.MatTypeCV32FC1 {
 		m := gocv.NewMatWithSize(mask.Rows(), mask.Cols(), gocv.MatTypeCV32FC1)
 		mask.ConvertTo(&m, gocv.MatTypeCV32FC1)
 		mask = &m
@@ -107,47 +193,9 @@ func (m *ImageManager) match(src *gocv.Mat, txtTpl string, tpl *gocv.Mat, o doma
 
 	cols := src.Cols() - tpl.Cols() + 1
 	rows := src.Rows() - tpl.Rows() + 1
-	res := gocv.NewMatWithSize(rows, cols, gocv.MatTypeCV32FC1)
-	defer func() {
-		res.Close()
-	}()
+	res = gocv.NewMatWithSize(rows, cols, gocv.MatTypeCV32FC1)
 
 	gocv.MatchTemplate(*s, *t, &res, gocv.TmSqdiffNormed, *mask)
-	if o.Normalize {
-		gocv.Normalize(res, &res, 0, 1, gocv.NormMinMax)
-	}
 
-	// var v2 float32
-	v, _, l, _ := gocv.MinMaxLoc(res)
-	// if o.HasMask && txtTpl == "swc.btn_top_right_menu" {
-	// 	sr := s.Region(image.Rect(l.X, l.Y, l.X+tpl.Cols(), l.Y+tpl.Rows()))
-	// 	defer sr.Close()
-
-	// 	t2 := gocv.NewMat()
-	// 	defer t2.Close()
-	// 	s2 := gocv.NewMat()
-	// 	defer s2.Close()
-	// 	r2 := gocv.NewMat()
-	// 	defer r2.Close()
-
-	// 	gocv.BitwiseAnd(sr, *mask, &s2)
-	// 	gocv.BitwiseAnd(*t, *mask, &t2)
-	// 	gocv.AbsDiff(s2, t2, &r2)
-
-	// 	gocv.IMWrite(filepath.Join("img", "mask.png"), *mask)
-	// 	gocv.IMWrite(filepath.Join("img", "t2.png"), t2)
-	// 	gocv.IMWrite(filepath.Join("img", "s2.png"), s2)
-	// 	gocv.IMWrite(filepath.Join("img", "r2.png"), r2)
-
-	// 	v2 = float32(r2.Sum().Val1) / float32(mask.Sum().Val1)
-	// }
-	if o.PrintVal {
-		m.log.Debugf("matching %s: %.4f at %v (mask: %v, expected: %.4f)", txtTpl, v, l, o.HasMask, o.Th)
-	}
-	//m.log.With("path", txtTpl).Debugf("match template min loc: %.4f (expected: %.4f)", v, th)
-	if v < o.Th {
-		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Rows()/2}
-	}
-
-	return false, image.Point{}
+	return res
 }

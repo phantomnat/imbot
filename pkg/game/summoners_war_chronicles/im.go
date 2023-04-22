@@ -2,6 +2,7 @@ package summonerswar
 
 import (
 	"image"
+	"strings"
 
 	"gocv.io/x/gocv"
 
@@ -56,9 +57,14 @@ func (b *SummonersWar) imMatchDefaultInROI(m gocv.Mat, roi image.Rectangle, path
 func (b *SummonersWar) MatchInROI(m gocv.Mat, roi image.Rectangle, o domain.MatchOption) (bool, image.Point) {
 	mROI := m.Region(roi)
 	defer mROI.Close()
-	ok, pt := b.im.Match(mROI, srcImageDir+"."+o.Path, o.Th, o)
+	o.Path = b.GetImagePath(o.Path)
+	ok, pt := b.im.MatchWithOption(mROI, o)
 	if ok {
 		return ok, image.Point{X: pt.X + roi.Min.X, Y: pt.Y + roi.Min.Y}
 	}
 	return ok, pt
+}
+
+func (b *SummonersWar) GetImagePath(path ...string) string {
+	return srcImageDir + "." + strings.Join(path, ".")
 }

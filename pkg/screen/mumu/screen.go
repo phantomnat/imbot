@@ -5,7 +5,6 @@ import (
 	"image"
 	"reflect"
 	"syscall"
-	"time"
 	"unsafe"
 
 	"github.com/lxn/win"
@@ -171,30 +170,35 @@ func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
 func makeLongFromP(p image.Point) uintptr {
 	return uintptr(win.MAKELONG(uint16(p.X), uint16(p.Y)))
 }
+func (s *Screen) MouseDragDuration(x1, y1, x2, y2, waitMs int) {
+	s.adbClient.Swipe(x1, y1, x2, y2, waitMs)
+}
 
 func (s *Screen) MouseDrag(x1, y1, x2, y2 int) {
-	hwnd := s.childHwnd
-	if hwnd == 0 {
-		return
-	}
-	win.PostMessage(hwnd, win.WM_LBUTTONDOWN, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
-	time.Sleep(10 * time.Millisecond)
-	for !(x1 == x2 && y1 == y2) {
-		if x1 > x2 {
-			x1--
-		} else if x1 < x2 {
-			x1++
-		}
-		if y1 > y2 {
-			y1--
-		} else if y1 < y2 {
-			y1++
-		}
-		win.PostMessage(hwnd, win.WM_MOUSEMOVE, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
-		time.Sleep(3 * time.Millisecond)
-	}
-	win.PostMessage(hwnd, win.WM_LBUTTONUP, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
-	time.Sleep(50 * time.Millisecond)
+	s.adbClient.Swipe(x1, y1, x2, y2, 1000)
+
+	// hwnd := s.childHwnd
+	// if hwnd == 0 {
+	// 	return
+	// }
+	// win.PostMessage(hwnd, win.WM_LBUTTONDOWN, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
+	// time.Sleep(10 * time.Millisecond)
+	// for !(x1 == x2 && y1 == y2) {
+	// 	if x1 > x2 {
+	// 		x1--
+	// 	} else if x1 < x2 {
+	// 		x1++
+	// 	}
+	// 	if y1 > y2 {
+	// 		y1--
+	// 	} else if y1 < y2 {
+	// 		y1++
+	// 	}
+	// 	win.PostMessage(hwnd, win.WM_MOUSEMOVE, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
+	// 	time.Sleep(3 * time.Millisecond)
+	// }
+	// win.PostMessage(hwnd, win.WM_LBUTTONUP, win.MK_LBUTTON, uintptr(win.MAKELONG(uint16(x1), uint16(y1))))
+	// time.Sleep(50 * time.Millisecond)
 }
 
 func (s *Screen) KeyTap(key string, args ...any) {
@@ -325,4 +329,9 @@ func (s *Screen) GetMat() (gocv.Mat, error) {
 	// fmt.Printf("src ch: %d, type: %v\n", out.Channels(), out.Type())
 
 	return out, nil
+}
+
+func (s *Screen) Back() {
+	s.log.Debugf("back")
+	s.adbClient.Back()
 }

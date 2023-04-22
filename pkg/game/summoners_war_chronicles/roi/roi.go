@@ -5,6 +5,9 @@ import (
 )
 
 var (
+	PtTopLeftBackBtn = Pt(35, 35)
+	PtTopRightHomeBtn = Pt(1235, 30)
+
 	// Quest complete dialog
 	ROIQuestCompleteExp        = Rect(488, 318, 75, 50)
 	ROIQuestCompleteBtns       = Rect(365, 524, 550, 70)
@@ -18,6 +21,15 @@ var (
 	ROIAreaExplorationTitle    = Rect(48, 5, 215, 50)
 	ROIAreaExplorationBtns     = Rect(770, 600, 450, 70)
 	ROIAreaExplorationNewQuest = Rect(196, 214, 30, 480)
+
+	// Main screen
+	ROIMainScreen = struct {
+		CoinIcon    image.Rectangle
+		CrystalIcon image.Rectangle
+	}{
+		CoinIcon:    Rect(517, 15, 37, 38),
+		CrystalIcon: Rect(646, 13, 36, 41),
+	}
 
 	// Main menu
 	// ROITopRigthMenuBtn = Rect(1222, 5, 50, 50)
@@ -52,9 +64,61 @@ var (
 	}
 
 	// Menu
-	PtMenu           = image.Pt(1240, 26)
-	ROIOfficialForum = Rect(1110, 657, 156, 52)
+	PtMenu = image.Pt(1240, 26)
+
+	MainMenu = struct {
+		OfficialForum image.Rectangle
+		LeftSide      image.Rectangle
+		RightSide     image.Rectangle
+	}{
+		OfficialForum: Rect(1110, 657, 156, 52),
+		LeftSide:      Rect(11, 249, 378, 398),
+		RightSide:     Rect(798, 211, 471, 428),
+	}
+
+	// Arena
+	Arena = struct {
+		Title image.Rectangle
+	}{
+		Title: Rect(210, 84, 860, 98),
+	}
+
+	ChallengeArena = struct {
+		ChooseOpponent image.Rectangle
+		RefreshBtn     image.Rectangle
+
+		PtStartDrag image.Point
+		PtStopDrag  image.Point
+
+		// refresh list dialog
+		RefreshDialog            image.Rectangle
+		PtCloseRefreshListDialog image.Point
+
+		// CharSelectionBattle
+		CharSelectionBattleBtns image.Rectangle
+
+		// Victory Dialog
+		VictoryReward  image.Rectangle
+		PtVictoryOKBtn image.Point
+	}{
+		ChooseOpponent: Rect(510, 182, 736, 535),
+
+		PtStartDrag: Pt(543, 702),
+		PtStopDrag:  Pt(543, 200),
+
+		RefreshBtn: Rect(1088, 129, 164, 41),
+
+		RefreshDialog:            Rect(344, 173, 592, 373),
+		PtCloseRefreshListDialog: Pt(900, 208),
+
+		CharSelectionBattleBtns: Rect(879, 584, 401, 136),
+
+		VictoryReward:  Rect(522, 368, 235, 133),
+		PtVictoryOKBtn: Pt(640, 590),
+	}
 )
+
+var Pt = image.Pt
 
 type MonsterStoryROI struct {
 	Buttons                image.Rectangle

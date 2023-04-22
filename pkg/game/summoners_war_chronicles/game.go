@@ -56,27 +56,40 @@ type SummonersWar struct {
 var _ domain.Game = (*SummonersWar)(nil)
 
 func New(imgManager *im.ImageManager) (*SummonersWar, error) {
-	sc, err := mumu.NewMumu(mumu.Option{
-		Title:      "Chronicles - MuMu Player",
-		AutoResize: true,
-		Width:      1280,
-		Height:     720,
-		ADBPort:    7555,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	setting, err := LoadSetting(configFile)
 	if err != nil {
 		return nil, err
 	}
+
+	var sc domain.Screen
+	emuOpt := mumu.Option{
+		AutoResize: true,
+		Width:      1280,
+		Height:     720,
+	}
+
+	switch setting.Emu {
+	case EmuTypeBlueStack:
+		emuOpt.Title = "BlueStacks App Player"
+		emuOpt.ADBPort = 5555
+		sc, err = mumu.NewBlueStack(emuOpt)
+	case EmuTypeMumu:
+		emuOpt.Title = "Chronicles - MuMu Player"
+		emuOpt.ADBPort = 7555
+		sc, err = mumu.NewMumu(emuOpt)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	b := &SummonersWar{
-		log:       zap.S().Named("summoners-war-chronicles"),
-		screen:    sc,
-		isRunning: new(atomic.Bool),
-		im:        imgManager,
-		setting:   setting,
+		log:              zap.S().Named("summoners-war-chronicles"),
+		screen:           sc,
+		isRunning:        new(atomic.Bool),
+		im:               imgManager,
+		setting:          setting,
+		currentTaskIndex: TaskUnknown,
 	}
 	return b, nil
 }
@@ -535,6 +548,7 @@ func (b *SummonersWar) SaveStatus(index int, key string, v any) {
 	if err != nil {
 		b.log.Errorf("cannot write status file '%s': %+v", StatusFile, err)
 	}
+	b.log.Info("save status")
 }
 
 func (b *SummonersWar) ExitTask() {

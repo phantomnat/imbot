@@ -23,8 +23,10 @@ type Screen interface {
 	MouseMoveAndClickByPoint(pt image.Point, args ...any)
 	MouseMoveAndClick(x, y int, args ...any)
 	MouseDrag(x1, y1, x2, y2 int)
+	MouseDragDuration(x1, y1, x2, y2, waitMs int)
 	KeyTap(key string, args ...any)
 	MouseMove(x, y int)
+	Back()
 }
 
 type TaskState int
@@ -55,23 +57,27 @@ type Task interface {
 	GetState() string
 }
 
-type MatchOption struct {
-	Path      string
-	Mask      *gocv.Mat
-	HasMask   bool
-	Th        float32
-	PrintVal  bool
-	Normalize bool
-}
-
 type Manager interface {
 	// ExitTask resets the current task index to unknown
 	ExitTask()
 
+	// im
+	GetImageManager() ImageManager
+	GetImagePath(path ...string) string
 	MatchInROI(m gocv.Mat, roi image.Rectangle, o MatchOption) (bool, image.Point)
 
+	// emu
+	Back()
 	Click(x, y int)
 	ClickPt(pt image.Point)
+	Drag(pt1, pt2 image.Point)
+	DragDuration(pt1, pt2 image.Point, waitMs int)
+
+	// general
+	GoToMainScreen(m gocv.Mat) (done bool)
+
+	// utils
+	SleepMs(ms int)
 
 	StatusManager
 }

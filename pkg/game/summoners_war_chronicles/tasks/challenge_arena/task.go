@@ -1,6 +1,7 @@
 package challenge_arena
 
 import (
+	"image"
 	"time"
 
 	"go.uber.org/zap"
@@ -15,12 +16,19 @@ const (
 	stateGoToMainMenu domain.TaskState = iota + 1
 	stateGoToArena
 	stateGoToChallengeArena
+	stateScrollToTop
+	stateRefreshList
+	stateSearchForChallenge
 	stateChallenge
 	stateDoQuickBattle
+	stateWaitForQuickBattle
 )
 
 var (
-	resetCoolDown = 30 * time.Minute
+	resetCoolDown        = 30 * time.Minute
+	prefixArena          = "arena"
+	prefixChallengeArena = "arena.challenge"
+	maxRepeat            = 3
 )
 
 type task struct {
@@ -30,31 +38,47 @@ type task struct {
 
 type TaskStatus struct {
 	Name         string
-	LastExecuted time.Time `json:"lastExecuted"`
-	NextExecuted time.Time `json:"nextExecuted"`
+	LastExecuted time.Time
+	NextExecuted time.Time
+	NextReset    time.Time
+	Repeat       int
+	Points       []image.Point
+	PointIdx     int
+	Stats        []DailyStats
+}
+
+type DailyStats struct {
+	Date        time.Time
+	Refresh     int
+	QuickBattle int
 }
 
 var _ domain.Task = (*task)(nil)
 
 func NewChallengeArenaTask(index int, name string, manager domain.Manager) domain.Task {
-	return &task{
+	t := &task{
 		BaseTask: tasks.BaseTask{
+			Im:      manager.GetImageManager(),
 			Index:   index,
 			Name:    name,
 			Manager: manager,
 			Log:     zap.S().Named("task").Named("challenge-arena"),
 			StateTexts: map[domain.TaskState]string{
 				domain.TaskStateBegin:   "begin",
-				stateGoToMainMenu:       "",
-				stateGoToArena:          "",
-				stateGoToChallengeArena: "",
-				stateChallenge:          "",
-				stateDoQuickBattle:      "",
+				stateGoToMainMenu:       "go_to_main_menu",
+				stateGoToArena:          "go_to_arena",
+				stateGoToChallengeArena: "go_to_challenge_arena",
+				stateScrollToTop:        "scroll_to_top",
+				stateRefreshList:        "refresh_list",
+				stateSearchForChallenge: "search_for_challenge",
+				stateChallenge:          "challenge",
+				stateDoQuickBattle:      "do_quick_battle",
+				stateWaitForQuickBattle: "wait_for_quick_battle",
 				domain.TaskStateEnd:     "end",
-				// TODO: readable task text
 			},
 		},
 	}
+	return t
 }
 
 func (t *task) Do(m gocv.Mat) bool {
@@ -69,55 +93,269 @@ func (t *task) Do(m gocv.Mat) bool {
 		if t.status.Name == "" {
 			t.status.Name = t.GetName()
 		}
-		t.SetState(stateGoToMainMenu)
+
+		// check reset
+		if time.Now().After(t.status.NextReset) {
+			// reset
+			today := time.Now().Truncate(time.Hour)
+			t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
+			if len(t.status.Stats) > 30 {
+				t.status.Stats = t.status.Stats[:30]
+			}
+			t.status.NextReset = time.Now().Truncate(time.Hour).AddDate(0, 0, 1)
+			t.SaveStatus(t.status)
+		}
+
+		switch {
+		case t.SearchROI(m,
+			tasks.WithROI(roi.MainMenu.OfficialForum),
+			tasks.WithPath("menu", "official_forum"),
+			tasks.WithNextState(stateGoToArena),
+			tasks.WithNoWait(),
+			// tasks.WithDebugMatch(),
+		):
+			return true
+		case t.Manager.GoToMainScreen(m):
+			t.SetState(stateGoToMainMenu)
+			return true
+		}
+
 	case stateGoToMainMenu:
 		// get status for this task
 		// check if ready to do
-		inMainMenu, _ := t.Manager.MatchInROI(m, roi.ROIOfficialForum, domain.MatchOption{
-			Path: "menu.official_forum",
-		})
-		if inMainMenu {
-			t.SetState(stateGoToArena)
-		} else {
-			// t.Manager.ClickPt(roi.PtMenu)
-			time.Sleep(1000 * time.Millisecond)
-
-			// TODO: remove
-			t.SetState(stateGoToArena)
+		if t.SearchROI(m,
+			tasks.WithROI(roi.MainMenu.OfficialForum),
+			tasks.WithPath("menu", "official_forum"),
+			tasks.WithNextState(stateGoToArena),
+			tasks.WithNoWait(),
+		) {
+			return true
 		}
-	case stateGoToArena:
 
-		time.Sleep(1000 * time.Millisecond)
-		t.SetState(stateGoToChallengeArena)
+		t.Manager.ClickPt(roi.PtMenu)
+		t.Manager.SleepMs(1000)
+
+	case stateGoToArena:
+		if t.SearchROI(m,
+			tasks.WithROI(roi.MainMenu.LeftSide),
+			tasks.WithPath("menu", "btn_arena"),
+			tasks.WithNextState(stateGoToChallengeArena),
+			tasks.WithClick(),
+			// tasks.WithWaitMs(1000),
+		) {
+			return true
+		}
 
 	case stateGoToChallengeArena:
-		time.Sleep(1000 * time.Millisecond)
-		t.SetState(stateChallenge)
-	case stateChallenge:
-		// find challenge btn
-		// pass the name to next state
-		// TODO: need multiple points detection here
-		// skip if name already done
-		// if all name skipped, scroll down
-		t.status.NextExecuted = time.Now().Add(10 * time.Second)
-		t.Log.Infof("next execute at %v", t.status.NextExecuted.Format(time.RFC3339))
+		if t.SearchROI(m,
+			tasks.WithROI(roi.Arena.Title),
+			tasks.WithPath("arena", "txt_challenge_arena"),
+			tasks.WithNextState(stateScrollToTop),
+			tasks.WithClick(),
+			// tasks.WithWaitMs(1000),
+		) {
+			return true
+		}
 
+	case stateScrollToTop:
+		if !t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_refresh"),
+			tasks.WithROI(roi.ChallengeArena.RefreshBtn),
+			tasks.WithNoWait(),
+		) {
+			return false
+		}
+
+		// scroll to top
+		t.Manager.DragDuration(roi.ChallengeArena.PtStopDrag, roi.ChallengeArena.PtStartDrag, 1000)
+		t.WaitMs(1000)
+		t.Manager.DragDuration(roi.ChallengeArena.PtStopDrag, roi.ChallengeArena.PtStartDrag, 1000)
+		t.WaitMs(1000)
+
+		t.SetState(stateRefreshList)
+
+	case stateRefreshList:
+		// refresh
+		mRefreshListDialog := m.Region(roi.ChallengeArena.RefreshDialog)
+		defer mRefreshListDialog.Close()
+
+		switch {
+		case t.SearchROI(mRefreshListDialog,
+			tasks.WithPath(prefixChallengeArena, "txt_refresh_list"),
+			tasks.WithNoWait(),
+		):
+			// click refresh list or close dialog
+			switch {
+			case t.SearchROI(mRefreshListDialog,
+				tasks.WithPath(prefixChallengeArena, "btn_refresh_list"),
+				tasks.WithNextState(stateSearchForChallenge),
+				tasks.WithClick(),
+				tasks.WithClickOffset(roi.ChallengeArena.RefreshDialog),
+			):
+				// refresh
+				t.status.NextExecuted = time.Now().Add(resetCoolDown)
+				t.status.Repeat = 0
+				t.status.Stats[0].Refresh++
+				t.Log.Infof("next execute at %v", t.status.NextExecuted.Format(time.RFC3339))
+				t.SaveStatus(t.status)
+
+			case t.SearchROI(
+				mRefreshListDialog,
+				tasks.WithPath(prefixChallengeArena, "btn_refresh_list_wait"),
+				tasks.WithNextState(stateSearchForChallenge),
+				tasks.WithNoWait(),
+			):
+				// TODO: refresh with crystal
+				// skip during development
+				t.status.Repeat = 0
+				t.SaveStatus(t.status)
+				t.Log.Infof("skip during development")
+				t.Manager.ClickPt(roi.ChallengeArena.PtCloseRefreshListDialog)
+			}
+
+			t.WaitMs(2000)
+			return true
+
+		case t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_refresh"),
+			tasks.WithROI(roi.ChallengeArena.RefreshBtn),
+			tasks.WithClick(),
+			tasks.WithWaitMs(2000),
+		):
+			// click refresh
+		}
+
+	case stateSearchForChallenge:
+		if !t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_refresh"),
+			tasks.WithROI(roi.ChallengeArena.RefreshBtn),
+			tasks.WithNoWait(),
+		) {
+			return false
+		}
+
+		mChooseOpponent := m.Region(roi.ChallengeArena.ChooseOpponent)
+		defer mChooseOpponent.Close()
+
+		points := t.Im.MatchMultiPoints(mChooseOpponent, domain.MatchOption{
+			Path:     t.Manager.GetImagePath(prefixChallengeArena, "btn_challenge"),
+			PrintVal: true,
+			Th:       0.03,
+		})
+
+		// t.Log.Infof("%#v", points)
+
+		t.status.Points = points
+		t.status.PointIdx = 0
 		t.SaveStatus(t.status)
 
-		time.Sleep(1000 * time.Millisecond)
-		t.SetState(domain.TaskStateEnd)
+		t.SetState(stateChallenge)
+
+	case stateChallenge:
+		if t.status.PointIdx >= len(t.status.Points) {
+			t.Manager.DragDuration(roi.ChallengeArena.PtStartDrag, roi.ChallengeArena.PtStopDrag, 1000)
+			t.WaitMs(2000)
+			t.SetState(stateSearchForChallenge)
+			t.status.Repeat++
+			if t.status.Repeat >= maxRepeat {
+				// TODO: exit
+				t.SetState(domain.TaskStateEnd)
+			}
+			t.SaveStatus(t.status)
+			return true
+		}
+
+		if t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_refresh"),
+			tasks.WithROI(roi.ChallengeArena.RefreshBtn),
+			tasks.WithNoWait(),
+		) {
+			t.Manager.ClickPt(t.GetPtWithROI(roi.ChallengeArena.ChooseOpponent, t.status.Points[t.status.PointIdx]))
+			t.WaitMs(2000)
+			t.SetState(stateDoQuickBattle)
+			return true
+		}
+
+		// mCharSelectionBattleBtns := m.Region(roi.ChallengeArena.CharSelectionBattleBtns)
+		// defer mCharSelectionBattleBtns.Close()
+
+	// challenge
+	// quick battle
+
+	// for _, pt := range points {
+	// 	mName := m.Region(image.Rect(pt.X, pt.Y, pt.X+150, pt.Y+50))
+	// }
+	// find challenge btn
+	// pass the name to next state
+	// TODO: need multiple points detection here
+	// skip if name already done
+	// if all name skipped, scroll down
+	// t.SleepMs(2000)
+	// t.Manager.DragDuration(roi.ChallengeArena.PtStartDrag, roi.ChallengeArena.PtStopDrag, 1000)
+	// t.Manager.ClickPt(roi.ChallengeArena.PtStopDrag)
+	// t.SleepMs(1000)
+	// t.SetState(domain.TaskStateEnd)
+
 	case stateDoQuickBattle:
+		if t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_quick_battle"),
+			tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),
+			tasks.WithNextState(stateWaitForQuickBattle),
+			tasks.WithClick(),
+			tasks.WithWaitMs(2000),
+		) {
+			// do quick battle
+			t.status.Stats[0].QuickBattle++
+			t.SaveStatus(t.status)
+
+		} else if t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "btn_quick_battle_disable"),
+			tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),
+			tasks.WithNoWait(),
+		) {
+			// back and try again
+			if t.SearchROI(m,
+				tasks.WithPath(prefixChallengeArena, "btn_battle_start"),
+				tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),
+				tasks.WithNextState(stateChallenge),
+				tasks.WithNoWait(),
+			) {
+				// back
+				t.Manager.ClickPt(roi.PtTopLeftBackBtn)
+				t.WaitMs(1000)
+				t.status.PointIdx++
+				t.SaveStatus(t.status)
+			}
+		}
+
+	case stateWaitForQuickBattle:
 		// looks for quick battle
 		// remember the name
 		// TODO: check if out of battle
 		// check for the limit
+
+		if t.SearchROI(m,
+			tasks.WithPath(prefixChallengeArena, "icon_arena_coin"),
+			tasks.WithROI(roi.ChallengeArena.VictoryReward),
+			tasks.WithNextState(stateSearchForChallenge),
+			tasks.WithNoWait(),
+		) {
+			t.Manager.ClickPt(roi.ChallengeArena.PtVictoryOKBtn)
+			t.WaitMs(2000)
+		}
+
 	case domain.TaskStateEnd:
+		t.Manager.ClickPt(roi.PtTopRightHomeBtn)
+		t.WaitMs(3000)
 		t.Exit()
+		return true
 	}
+
 	return false
 }
 
 func (t *task) IsReady() bool {
+	t.LoadStatus(&t.status)
 	if t.status.NextExecuted.IsZero() {
 		return true
 	}
