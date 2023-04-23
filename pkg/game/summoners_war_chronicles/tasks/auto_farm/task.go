@@ -1,9 +1,6 @@
 package auto_farm
 
 import (
-	"fmt"
-
-	"go.uber.org/zap"
 	"gocv.io/x/gocv"
 
 	"github.com/phantomnat/imbot/pkg/domain"
@@ -35,25 +32,19 @@ const (
 func NewAutoFarm(index int, manager domain.Manager, setting TaskSetting) domain.Task {
 	t := &task{
 		setting: setting,
-		BaseTask: tasks.BaseTask{
-			Im:      manager.GetImageManager(),
-			Index:   index,
-			Name:    fmt.Sprintf("%T", setting),
-			Manager: manager,
-			Log:     zap.S().Named("task").Named("challenge-arena"),
-			StateTexts: map[domain.TaskState]string{
-				domain.TaskStateBegin: "begin",
+		BaseTask: tasks.NewBaseTask(index, manager, setting,
+			map[domain.TaskState]string{
 				stateGoToMainMenu:     "go_to_main_menu",
 				stateEnsureAutoBattle: "ensure_auto_battle",
-				domain.TaskStateEnd:   "end",
 			},
-		},
+		),
 	}
 	return t
 }
 
 func (t *task) Do(m gocv.Mat) bool {
 	if t.Exiting {
+		t.Exit()
 		return true
 	}
 

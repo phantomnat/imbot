@@ -1,11 +1,9 @@
 package challenge_arena
 
 import (
-	"fmt"
 	"image"
 	"time"
 
-	"go.uber.org/zap"
 	"gocv.io/x/gocv"
 
 	"github.com/phantomnat/imbot/pkg/domain"
@@ -64,14 +62,8 @@ var _ domain.Task = (*task)(nil)
 func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSetting) domain.Task {
 	t := &task{
 		setting: setting,
-		BaseTask: tasks.BaseTask{
-			Im:      manager.GetImageManager(),
-			Index:   index,
-			Name:    fmt.Sprintf("%T", setting),
-			Manager: manager,
-			Log:     zap.S().Named("task").Named("challenge-arena"),
-			StateTexts: map[domain.TaskState]string{
-				domain.TaskStateBegin:   "begin",
+		BaseTask: tasks.NewBaseTask(index, manager, setting,
+			map[domain.TaskState]string{
 				stateGoToMainMenu:       "go_to_main_menu",
 				stateGoToArena:          "go_to_arena",
 				stateGoToChallengeArena: "go_to_challenge_arena",
@@ -81,9 +73,8 @@ func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSettin
 				stateChallenge:          "challenge",
 				stateDoQuickBattle:      "do_quick_battle",
 				stateWaitForQuickBattle: "wait_for_quick_battle",
-				domain.TaskStateEnd:     "end",
 			},
-		},
+		),
 	}
 	return t
 }
@@ -94,6 +85,10 @@ func (t *task) LoadStatus(in any) {
 		t.Log.Warnf("reset status, cannot the current: %+v", err)
 		t.status = TaskStatus{}
 	}
+}
+
+func (t *task) GetStatus() any {
+	return t.status
 }
 
 func (t *task) Do(m gocv.Mat) bool {
@@ -117,7 +112,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				t.status.Stats = t.status.Stats[:30]
 			}
 			t.status.NextReset = time.Now().Truncate(time.Hour).AddDate(0, 0, 1)
-			t.SaveStatus(t.status)
+			t.SaveStatus()
 		}
 
 		switch {
@@ -147,7 +142,7 @@ func (t *task) Do(m gocv.Mat) bool {
 		}
 
 		t.Manager.ClickPt(roi.PtMenu)
-		t.Manager.SleepMs(1000)
+		t.WaitMs(1000)
 
 	case stateGoToArena:
 		if t.SearchROI(m,
@@ -211,7 +206,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				t.status.Repeat = 0
 				t.status.Stats[0].Refresh++
 				t.Log.Infof("next execute at %v", t.status.NextExecuted.Format(time.RFC3339))
-				t.SaveStatus(t.status)
+				t.SaveStatus()
 
 			case t.SearchROI(
 				mRefreshListDialog,
@@ -222,7 +217,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				// TODO: refresh with crystal
 				// skip during development
 				t.status.Repeat = 0
-				t.SaveStatus(t.status)
+				t.SaveStatus()
 				t.Log.Infof("skip during development")
 				t.Manager.ClickPt(roi.ChallengeArena.PtCloseRefreshListDialog)
 			}
@@ -261,7 +256,7 @@ func (t *task) Do(m gocv.Mat) bool {
 
 		t.status.Points = points
 		t.status.PointIdx = 0
-		t.SaveStatus(t.status)
+		t.SaveStatus()
 
 		t.SetState(stateChallenge)
 
@@ -275,7 +270,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				// TODO: exit
 				t.SetState(domain.TaskStateEnd)
 			}
-			t.SaveStatus(t.status)
+			t.SaveStatus()
 			return true
 		}
 
@@ -290,26 +285,6 @@ func (t *task) Do(m gocv.Mat) bool {
 			return true
 		}
 
-		// mCharSelectionBattleBtns := m.Region(roi.ChallengeArena.CharSelectionBattleBtns)
-		// defer mCharSelectionBattleBtns.Close()
-
-	// challenge
-	// quick battle
-
-	// for _, pt := range points {
-	// 	mName := m.Region(image.Rect(pt.X, pt.Y, pt.X+150, pt.Y+50))
-	// }
-	// find challenge btn
-	// pass the name to next state
-	// TODO: need multiple points detection here
-	// skip if name already done
-	// if all name skipped, scroll down
-	// t.SleepMs(2000)
-	// t.Manager.DragDuration(roi.ChallengeArena.PtStartDrag, roi.ChallengeArena.PtStopDrag, 1000)
-	// t.Manager.ClickPt(roi.ChallengeArena.PtStopDrag)
-	// t.SleepMs(1000)
-	// t.SetState(domain.TaskStateEnd)
-
 	case stateDoQuickBattle:
 		if t.SearchROI(m,
 			tasks.WithPath(prefixChallengeArena, "btn_quick_battle"),
@@ -320,7 +295,7 @@ func (t *task) Do(m gocv.Mat) bool {
 		) {
 			// do quick battle
 			t.status.Stats[0].QuickBattle++
-			t.SaveStatus(t.status)
+			t.SaveStatus()
 
 		} else if t.SearchROI(m,
 			tasks.WithPath(prefixChallengeArena, "btn_quick_battle_disable"),
@@ -338,7 +313,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				t.Manager.ClickPt(roi.PtTopLeftBackBtn)
 				t.WaitMs(1000)
 				t.status.PointIdx++
-				t.SaveStatus(t.status)
+				t.SaveStatus()
 			}
 		}
 
@@ -373,4 +348,8 @@ func (t *task) IsReady() bool {
 		return true
 	}
 	return time.Now().After(t.status.NextExecuted)
+}
+
+func (t *task) SaveStatus() {
+	t.Manager.SaveStatus(t.Index, t.Name, t.status)
 }

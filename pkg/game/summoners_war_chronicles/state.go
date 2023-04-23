@@ -11,6 +11,8 @@ var (
 
 	StateExecuteTask     BotState = "execute_task"
 	StateExitCurrentTask BotState = "exit_current_task"
+
+	StateDoAreaExplorationQuest BotState = "do_area_exploration_quest"
 )
 
 const (

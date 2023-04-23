@@ -15,7 +15,9 @@ type MatchOption struct {
 }
 
 type ImageManager interface {
-	MatchWithOption(src gocv.Mat, opt MatchOption) (bool, image.Point)
+	MatchWithCenterROI(src gocv.Mat, opt MatchOption) (bool, image.Point)
+
+	MatchPoint(src gocv.Mat, opt MatchOption) (bool, image.Point)
 	MatchMultiPoints(src gocv.Mat, opt MatchOption) []image.Point
 }
 

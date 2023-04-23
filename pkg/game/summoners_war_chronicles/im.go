@@ -58,7 +58,7 @@ func (b *SummonersWar) MatchInROI(m gocv.Mat, roi image.Rectangle, o domain.Matc
 	mROI := m.Region(roi)
 	defer mROI.Close()
 	o.Path = b.GetImagePath(o.Path)
-	ok, pt := b.im.MatchWithOption(mROI, o)
+	ok, pt := b.im.MatchWithCenterROI(mROI, o)
 	if ok {
 		return ok, image.Point{X: pt.X + roi.Min.X, Y: pt.Y + roi.Min.Y}
 	}

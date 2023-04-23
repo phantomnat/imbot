@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"sigs.k8s.io/yaml"
 
+	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 )
@@ -29,6 +30,8 @@ type Setting struct {
 	Emu  EmuType
 	Mode BotMode
 
+	AreaExploration *area_exploration.TaskSetting
+
 	Tasks []TaskSetting
 }
 
@@ -48,6 +51,7 @@ func LoadSetting(fileName string) (Setting, error) {
 	default:
 		s.Emu = EmuTypeMumu
 	}
+
 
 	return s, nil
 }

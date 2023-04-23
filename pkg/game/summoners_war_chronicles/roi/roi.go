@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	PtTopLeftBackBtn = Pt(35, 35)
+	PtTopLeftBackBtn  = Pt(35, 35)
 	PtTopRightHomeBtn = Pt(1235, 30)
 
 	// Quest complete dialog
@@ -15,9 +15,37 @@ var (
 	ROIModalComplete           = Rect(380, 598, 530, 64)
 	// ROIQuestCompleteBtns = Rect(506, 524, 270, 70)
 
+	QuestCompleted = struct {
+		Buttons    image.Rectangle
+		TapToClose image.Rectangle
+
+		PtOK image.Point
+	}{
+		Buttons:    Rect(365, 524, 550, 70),
+		TapToClose: Rect(482, 477, 320, 20),
+
+		PtOK: Pt(670, 560),
+	}
+
 	ROIActiveQuestIcon = Rect(55, 5, 35, 320)
 
 	// Area exploration
+	AreaExploration = struct {
+		Title   image.Rectangle
+		Buttons image.Rectangle
+
+		QuestList            image.Rectangle
+		PtStartDragQuestList image.Point
+		PtStopDragQuestList  image.Point
+	}{
+		Title:   Rect(48, 5, 215, 50),
+		Buttons: Rect(770, 600, 450, 70),
+
+		QuestList:            Rect(196, 214, 30, 480),
+		PtStartDragQuestList: Pt(110, 640),
+		PtStopDragQuestList:  Pt(110, 240),
+	}
+
 	ROIAreaExplorationTitle    = Rect(48, 5, 215, 50)
 	ROIAreaExplorationBtns     = Rect(770, 600, 450, 70)
 	ROIAreaExplorationNewQuest = Rect(196, 214, 30, 480)
@@ -28,13 +56,13 @@ var (
 		CrystalIcon image.Rectangle
 
 		AutoBattleIcon image.Rectangle
-		PtAutoBattle image.Point
+		PtAutoBattle   image.Point
 	}{
 		CoinIcon:    Rect(517, 15, 37, 38),
 		CrystalIcon: Rect(646, 13, 36, 41),
 
 		AutoBattleIcon: Rect(925, 654, 47, 48),
-		PtAutoBattle: Pt(950, 680),
+		PtAutoBattle:   Pt(950, 680),
 	}
 
 	// Main menu

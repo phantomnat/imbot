@@ -16,6 +16,7 @@ import (
 	"github.com/phantomnat/imbot/pkg/im"
 	"github.com/phantomnat/imbot/pkg/screen/mumu"
 
+	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 )
@@ -51,6 +52,8 @@ type SummonersWar struct {
 	tasks            []domain.Task
 	taskStatuses     []any
 	currentTaskIndex int
+
+	taskAreaExploration domain.Task
 }
 
 var _ domain.Game = (*SummonersWar)(nil)
@@ -122,6 +125,10 @@ func (b *SummonersWar) Reset() {
 }
 
 func (b *SummonersWar) LoadTasks() {
+	if b.setting.AreaExploration != nil {
+		b.taskAreaExploration = area_exploration.NewAreaExploration(0, b, *b.setting.AreaExploration)
+	}
+
 	b.tasks = make([]domain.Task, 0, len(b.setting.Tasks))
 	index := 0
 	for i := range b.setting.Tasks {
@@ -144,7 +151,7 @@ func (b *SummonersWar) LoadTasks() {
 		b.taskStatuses = make([]any, len(b.tasks))
 	} else {
 		b.taskStatuses = status.Tasks
-		
+
 		for i := 0; i < len(b.tasks) && i < len(b.taskStatuses); i++ {
 			b.tasks[i].LoadStatus(b.taskStatuses[i])
 		}
@@ -211,7 +218,15 @@ func (b *SummonersWar) handleState() {
 
 	switch b.GetState() {
 	case StartState:
-		b.SetState(StateExecuteTask)
+		switch {
+		case b.setting.AreaExploration != nil && b.setting.AreaExploration.Enable:
+			b.SetState(StateDoAreaExplorationQuest)
+		default:
+			b.SetState(StateExecuteTask)
+		}
+
+	case StateDoAreaExplorationQuest:
+		b.taskAreaExploration.Do(m)
 
 	case StateExecuteTask:
 		// check all tasks
@@ -254,11 +269,11 @@ func (b *SummonersWar) handleState() {
 		case b.handleAreaExploration(m):
 		case b.handleMonsterStory(m):
 		case b.handleDialog(m):
-		default:
-			// handle tasks
-			for i := range b.tasks {
-				b.tasks[i].Do(m)
-			}
+		// default:
+		// 	// handle tasks
+		// 	for i := range b.tasks {
+		// 		b.tasks[i].Do(m)
+		// 	}
 		}
 
 	case EndState:

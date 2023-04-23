@@ -55,6 +55,10 @@ type Task interface {
 
 	// GetState returns state in string
 	GetState() string
+
+	LoadStatus(any)
+
+	// UpdateSetting(v any)
 }
 
 type Manager interface {
@@ -75,9 +79,10 @@ type Manager interface {
 
 	// general
 	GoToMainScreen(m gocv.Mat) (done bool)
-
-	// utils
-	SleepMs(ms int)
+	IsOnMainScreen(m gocv.Mat) (done bool)
+	IsOnMainMenu(m gocv.Mat) (done bool)
+	HandleConversationDialog(m gocv.Mat) (done bool)
+	HandleQuestCompleted(m gocv.Mat) (done bool)
 
 	StatusManager
 }

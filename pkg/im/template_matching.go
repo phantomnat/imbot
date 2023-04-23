@@ -16,7 +16,7 @@ const (
 )
 
 func (m *ImageManager) MatchDefault(src gocv.Mat, p ...string) (bool, image.Point) {
-	return m.matchWithMask(src, domain.MatchOption{
+	return m.matchWithCenterROI(src, domain.MatchOption{
 		Path: strings.Join(p, "."),
 		Th:   thOnePercent,
 	})
@@ -49,8 +49,29 @@ func (m *ImageManager) MatchDefault(src gocv.Mat, p ...string) (bool, image.Poin
 // 	})
 // }
 
-func (m *ImageManager) MatchWithOption(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
-	return m.matchWithMask(src, opt)
+func (m *ImageManager) MatchWithCenterROI(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
+	return m.matchWithCenterROI(src, opt)
+}
+
+func (m *ImageManager) MatchPoint(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
+	m.applyDefaultMatchOption(&opt)
+
+	if ok, tpl := m.Get(opt.Path); ok {
+		if matched, pt := m.templateMatch(&src, tpl, opt); matched {
+			return matched, pt
+		}
+	}
+	for i := 1; i <= 10; i++ {
+		if ok, tpl := m.Get(opt.Path + "_" + strconv.Itoa(i)); ok {
+			if matched, pt := m.templateMatch(&src, tpl, opt); matched {
+				return true, pt
+			}
+		} else {
+			// not found template, so we break
+			break
+		}
+	}
+	return false, image.Point{}
 }
 
 func (m *ImageManager) MatchMultiPoints(src gocv.Mat, opt domain.MatchOption) []image.Point {
@@ -87,20 +108,20 @@ func (m *ImageManager) applyDefaultMatchOption(opt *domain.MatchOption) {
 	}
 }
 
-// matchWithMask from <p>.1 to <p>.10
-func (m *ImageManager) matchWithMask(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
+// matchWithCenterROI from <p>.1 to <p>.10
+func (m *ImageManager) matchWithCenterROI(src gocv.Mat, opt domain.MatchOption) (bool, image.Point) {
 
 	m.applyDefaultMatchOption(&opt)
 
 	if ok, tpl := m.Get(opt.Path); ok {
 		if matched, pt := m.templateMatch(&src, tpl, opt); matched {
-			return matched, pt
+			return matched, image.Point{X: pt.X + tpl.Cols()/2, Y: pt.Y + tpl.Rows()/2}
 		}
 	}
 	for i := 1; i <= 10; i++ {
 		if ok, tpl := m.Get(opt.Path + "_" + strconv.Itoa(i)); ok {
 			if matched, pt := m.templateMatch(&src, tpl, opt); matched {
-				return true, pt
+				return true, image.Point{X: pt.X + tpl.Cols()/2, Y: pt.Y + tpl.Rows()/2}
 			}
 		} else {
 			// not found template, so we break
@@ -120,7 +141,7 @@ func (m *ImageManager) templateMatch(src *gocv.Mat, tpl *gocv.Mat, o domain.Matc
 		m.log.Debugf("matching %s: %.4f at %v (mask: %v, expected: %.4f)", o.Path, v, l, o.HasMask, o.Th)
 	}
 	if v < o.Th {
-		return true, image.Point{X: l.X + tpl.Cols()/2, Y: l.Y + tpl.Rows()/2}
+		return true, l
 	}
 
 	return false, image.Point{}
