@@ -177,7 +177,7 @@ func (t *task) Do(m gocv.Mat) bool {
 
 		// scroll to top
 		t.Manager.DragDuration(roi.ChallengeArena.PtStopDrag, roi.ChallengeArena.PtStartDrag, 1000)
-		t.WaitMs(1000)
+		// t.WaitMs(1000)
 		t.Manager.DragDuration(roi.ChallengeArena.PtStopDrag, roi.ChallengeArena.PtStartDrag, 1000)
 		t.WaitMs(1000)
 

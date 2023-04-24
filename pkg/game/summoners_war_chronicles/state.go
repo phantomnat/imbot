@@ -13,6 +13,7 @@ var (
 	StateExitCurrentTask BotState = "exit_current_task"
 
 	StateDoAreaExplorationQuest BotState = "do_area_exploration_quest"
+	StateDoMonsterStoryQuest BotState = "do_monster_story_quest"
 )
 
 const (

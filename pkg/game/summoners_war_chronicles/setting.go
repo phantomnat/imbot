@@ -9,6 +9,7 @@ import (
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 )
 
 type BotMode string
@@ -31,6 +32,7 @@ type Setting struct {
 	Mode BotMode
 
 	AreaExploration *area_exploration.TaskSetting
+	MonsterStory    *monster_story.TaskSetting
 
 	Tasks []TaskSetting
 }
@@ -51,7 +53,6 @@ func LoadSetting(fileName string) (Setting, error) {
 	default:
 		s.Emu = EmuTypeMumu
 	}
-
 
 	return s, nil
 }

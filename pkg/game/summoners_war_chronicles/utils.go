@@ -148,11 +148,10 @@ func (b *SummonersWar) HandleQuestCompleted(m gocv.Mat) bool {
 		if foundTapToClose {
 			b.log.Infof("quest completed, click anywhere to close")
 			b.ClickPt(roi.QuestCompleted.PtOK)
-			sleepMs(1500)
+			waitMs(1500)
 			return true
 		}
 	}
-	
 
 	// complete dialog
 
