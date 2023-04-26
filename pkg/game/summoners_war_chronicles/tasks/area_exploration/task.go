@@ -1,4 +1,4 @@
-package auto_farm
+package area_exploration
 
 import (
 	"image"

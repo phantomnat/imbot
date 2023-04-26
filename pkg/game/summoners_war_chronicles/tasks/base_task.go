@@ -58,6 +58,10 @@ func (t *BaseTask) Do(_ gocv.Mat) bool {
 func (t *BaseTask) LoadStatus(in any) {
 }
 
+func (t *BaseTask) Reset() {
+	t.SetState(domain.TaskStateBegin)
+}
+
 func (t *BaseTask) GetState() string {
 	return t.StateTexts[t.State]
 }

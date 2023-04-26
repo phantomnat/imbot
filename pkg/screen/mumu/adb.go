@@ -65,7 +65,7 @@ func (c *ADBClient) deviceURL() string {
 func (c *ADBClient) RunShell(in string, args ...string) {
 	// start := time.Now()
 	cmd := in + " " + strings.Join(args, " ") + "\n"
-	c.log.Debugf("sending %s", cmd)
+	// c.log.Debugf("sending %s", cmd)
 	io.WriteString(c.sessionWriter, cmd)
 	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	// defer cancel()

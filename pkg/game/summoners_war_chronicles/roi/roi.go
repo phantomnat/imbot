@@ -98,16 +98,20 @@ var (
 	}
 
 	// Menu
-	PtMenu = image.Pt(1240, 26)
+	PtTopRightMenu = image.Pt(1240, 26)
 
 	MainMenu = struct {
 		OfficialForum image.Rectangle
 		LeftSide      image.Rectangle
 		RightSide     image.Rectangle
+
+		PtRune image.Point
 	}{
 		OfficialForum: Rect(1110, 657, 156, 52),
 		LeftSide:      Rect(11, 249, 378, 398),
 		RightSide:     Rect(798, 211, 471, 428),
+
+		PtRune: Pt(940, 390),
 	}
 
 	// Arena
@@ -150,6 +154,73 @@ var (
 		VictoryReward:  Rect(522, 368, 235, 133),
 		PtVictoryOKBtn: Pt(640, 590),
 	}
+
+	Rune = struct {
+		PtRuneAlchemy image.Point
+	}{
+		PtRuneAlchemy: Pt(930, 660),
+	}
+	RuneAlchemy = struct {
+		PtRuneCombination image.Point
+		RuneCombination   RuneCombination
+	}{
+		PtRuneCombination: Pt(100, 280),
+		RuneCombination: RuneCombination{
+			PtSimpleSetting:        Pt(1040, 105),
+			RuneCombinationButtons: Rect(304, 616, 450, 75),
+			PtDeselectAll:          Pt(400, 650),
+
+			SimpleSetting:        Rect(543, 69, 320, 630),
+			SimpleSettingButtons: Rect(543, 622, 320, 75),
+			PtSimpleSettingApply: Pt(750, 660),
+
+			RuneList: Rect(870, 137, 370, 460),
+
+			CheckRuneCombinationModal: Rect(312, 152, 655, 415),
+			RuneCombinedRune:          Rect(474, 254, 99, 102),
+			RuneCombinedButtons:       Rect(387, 594, 507, 79),
+
+			PtReset: Pt(600, 660),
+			PtApply: Pt(760, 660),
+
+			PtRuneSet: map[RuneSet]image.Point{
+				EnergyRuneSet: Pt(600, 110),
+				GuardRuneSet:  Pt(668, 110),
+				BladeRuneSet:  Pt(736, 110),
+				RageRuneSet:   Pt(804, 110),
+
+				FatalRuneSet:  Pt(600, 170),
+				SwiftRuneSet:  Pt(668, 170),
+				FocusRuneSet:  Pt(736, 170),
+				EndureRuneSet: Pt(804, 170),
+
+				ForesightRuneSet: Pt(600, 225),
+				AssembleRuneSet:  Pt(668, 225),
+				DespairRuneSet:   Pt(736, 225),
+				VampireRuneSet:   Pt(804, 225),
+			},
+
+			PtRuneSlots: [7]image.Point{
+				Pt(0, 0), // 0 - no used
+				Pt(610, 340),
+				Pt(700, 340),
+				Pt(790, 340),
+				Pt(610, 390),
+				Pt(700, 390),
+				Pt(790, 390),
+			},
+
+			PtRuneStars: [7]image.Point{
+				Pt(0, 0), // 0 - no used
+				Pt(610, 450),
+				Pt(700, 450),
+				Pt(790, 450),
+				Pt(610, 510),
+				Pt(700, 510),
+				Pt(790, 510),
+			},
+		},
+	}
 )
 
 var Pt = image.Pt
@@ -159,3 +230,49 @@ type MonsterStoryROI struct {
 	ModalStartStory        image.Rectangle
 	ModalStartStoryButtons image.Rectangle
 }
+
+type RuneCombination struct {
+	PtSimpleSetting        image.Point
+	RuneCombinationButtons image.Rectangle
+	PtDeselectAll          image.Point
+
+	SimpleSetting        image.Rectangle
+	SimpleSettingButtons image.Rectangle
+	PtSimpleSettingApply image.Point
+
+	RuneList image.Rectangle
+
+	CheckRuneCombinationModal image.Rectangle
+	RuneCombinedRune          image.Rectangle
+	RuneCombinedButtons       image.Rectangle
+
+	PtReset image.Point
+	PtApply image.Point
+
+	PtRuneSet map[RuneSet]image.Point
+
+	// slot 1-6
+	PtRuneSlots [7]image.Point
+
+	// star 1-6
+	PtRuneStars [7]image.Point
+}
+
+type RuneSet string
+
+const (
+	EnergyRuneSet RuneSet = "energy"
+	GuardRuneSet  RuneSet = "guard"
+	BladeRuneSet  RuneSet = "blade"
+	RageRuneSet   RuneSet = "rage"
+
+	FatalRuneSet  RuneSet = "fatal"
+	SwiftRuneSet  RuneSet = "swift"
+	FocusRuneSet  RuneSet = "focus"
+	EndureRuneSet RuneSet = "endure"
+
+	ForesightRuneSet RuneSet = "foresight"
+	AssembleRuneSet  RuneSet = "assemble"
+	DespairRuneSet   RuneSet = "despair"
+	VampireRuneSet   RuneSet = "vampire"
+)

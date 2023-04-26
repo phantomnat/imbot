@@ -42,6 +42,7 @@ type TaskSetting struct {
 
 type TaskStatus struct {
 	Name         string
+	State        domain.TaskState
 	LastExecuted time.Time
 	NextExecuted time.Time
 	NextReset    time.Time
@@ -84,6 +85,8 @@ func (t *task) LoadStatus(in any) {
 	if err != nil {
 		t.Log.Warnf("reset status, cannot the current: %+v", err)
 		t.status = TaskStatus{}
+	} else {
+		t.SetState(t.status.State)
 	}
 }
 
@@ -141,7 +144,7 @@ func (t *task) Do(m gocv.Mat) bool {
 			return true
 		}
 
-		t.Manager.ClickPt(roi.PtMenu)
+		t.Manager.ClickPt(roi.PtTopRightMenu)
 		t.WaitMs(1000)
 
 	case stateGoToArena:
@@ -216,6 +219,7 @@ func (t *task) Do(m gocv.Mat) bool {
 			):
 				// TODO: refresh with crystal
 				// skip during development
+				t.status.NextExecuted = time.Now().Add(resetCoolDown)
 				t.status.Repeat = 0
 				t.SaveStatus()
 				t.Log.Infof("skip during development")
@@ -351,5 +355,6 @@ func (t *task) IsReady() bool {
 }
 
 func (t *task) SaveStatus() {
-	t.Manager.SaveStatus(t.Index, t.Name, t.status)
+	t.status.State = t.State
+	t.Manager.SaveStatusByIndex(t.Index, t.Name, t.status)
 }

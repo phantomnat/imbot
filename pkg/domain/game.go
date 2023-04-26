@@ -58,6 +58,7 @@ type Task interface {
 
 	LoadStatus(any)
 
+	Reset()
 	// UpdateSetting(v any)
 }
 
@@ -88,6 +89,7 @@ type Manager interface {
 }
 
 type StatusManager interface {
-	LoadStatus(index int, key string) any
-	SaveStatus(index int, key string, v any)
+	// LoadStatus(index int, key string) any
+	SaveStatus(key string, v any)
+	SaveStatusByIndex(index int, key string, v any)
 }

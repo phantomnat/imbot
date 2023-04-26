@@ -1,4 +1,4 @@
-package auto_farm
+package monster_story
 
 import (
 	"gocv.io/x/gocv"

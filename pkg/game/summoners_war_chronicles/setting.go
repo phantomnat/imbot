@@ -10,6 +10,7 @@ import (
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
+	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
 )
 
 type BotMode string
@@ -33,12 +34,14 @@ type Setting struct {
 
 	AreaExploration *area_exploration.TaskSetting
 	MonsterStory    *monster_story.TaskSetting
+	RuneCombination *rune_combination.TaskSetting
 
 	Tasks []TaskSetting
 }
 
-type TaskStatus struct {
-	Tasks []any `json:"tasks"`
+type TaskSetting struct {
+	ChallengeArena *challenge_arena.TaskSetting
+	AutoFarm       *auto_farm.TaskSetting
 }
 
 func LoadSetting(fileName string) (Setting, error) {
@@ -70,11 +73,11 @@ func laodYAMLFile[T any](fileName string) (T, error) {
 	return v, nil
 }
 
-func LoadTaskStatus(fileName string) (TaskStatus, error) {
-	return laodYAMLFile[TaskStatus](fileName)
+type TaskStatus struct {
+	RuneCombination any
+	Tasks           []any `json:"tasks"`
 }
 
-type TaskSetting struct {
-	ChallengeArena *challenge_arena.TaskSetting
-	AutoFarm       *auto_farm.TaskSetting
+func LoadTaskStatus(fileName string) (TaskStatus, error) {
+	return laodYAMLFile[TaskStatus](fileName)
 }

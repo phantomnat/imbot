@@ -20,6 +20,7 @@ import (
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
+	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
 )
 
 const (
@@ -51,11 +52,12 @@ type SummonersWar struct {
 
 	setting          Setting
 	tasks            []domain.Task
-	taskStatuses     []any
+	taskStatus       TaskStatus
 	currentTaskIndex int
 
 	taskAreaExploration domain.Task
 	taskMonsterStory    domain.Task
+	taskRuneCombination domain.Task
 }
 
 var _ domain.Game = (*SummonersWar)(nil)
@@ -124,6 +126,7 @@ func (b *SummonersWar) Reset() {
 	b.log.Debugf("reset!")
 	b.Pause()
 	b.SetState(StartState)
+	b.taskRuneCombination.Reset()
 }
 
 func (b *SummonersWar) LoadTasks() {
@@ -132,6 +135,9 @@ func (b *SummonersWar) LoadTasks() {
 	}
 	if b.setting.MonsterStory != nil {
 		b.taskMonsterStory = monster_story.NewMonsterStory(0, b, *b.setting.MonsterStory)
+	}
+	if b.setting.RuneCombination != nil {
+		b.taskRuneCombination = rune_combination.NewRuneCombination(0, b, *b.setting.RuneCombination)
 	}
 
 	b.tasks = make([]domain.Task, 0, len(b.setting.Tasks))
@@ -153,21 +159,23 @@ func (b *SummonersWar) LoadTasks() {
 	status, err := LoadTaskStatus(StatusFile)
 	if err != nil {
 		b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
-		b.taskStatuses = make([]any, len(b.tasks))
+		b.taskStatus = TaskStatus{}
 	} else {
-		b.taskStatuses = status.Tasks
+		b.taskStatus = status
 
-		for i := 0; i < len(b.tasks) && i < len(b.taskStatuses); i++ {
-			b.tasks[i].LoadStatus(b.taskStatuses[i])
+		for i := 0; i < len(b.tasks) && i < len(b.taskStatus.Tasks); i++ {
+			b.tasks[i].LoadStatus(b.taskStatus.Tasks[i])
 		}
 
 		// add more statuses
-		if len(b.taskStatuses) < len(b.tasks) {
-			diff := len(b.tasks) - len(b.taskStatuses)
+		if len(b.taskStatus.Tasks) < len(b.tasks) {
+			diff := len(b.tasks) - len(b.taskStatus.Tasks)
 			for i := 0; i < diff; i++ {
-				b.taskStatuses = append(b.taskStatuses, nil)
+				b.taskStatus.Tasks = append(b.taskStatus.Tasks, nil)
 			}
 		}
+
+		b.taskRuneCombination.LoadStatus(b.taskStatus.RuneCombination)
 
 		b.log.Infof("status reloaded")
 	}
@@ -228,15 +236,18 @@ func (b *SummonersWar) handleState() {
 			b.SetState(StateDoAreaExplorationQuest)
 		case b.setting.MonsterStory != nil && b.setting.MonsterStory.Enable:
 			b.SetState(StateDoMonsterStoryQuest)
+		case b.setting.RuneCombination != nil && b.setting.RuneCombination.Enable:
+			b.SetState(StateDoRuneCombination)
 		default:
 			b.SetState(StateExecuteTask)
 		}
 
 	case StateDoAreaExplorationQuest:
 		b.taskAreaExploration.Do(m)
-
 	case StateDoMonsterStoryQuest:
 		b.taskMonsterStory.Do(m)
+	case StateDoRuneCombination:
+		b.taskRuneCombination.Do(m)
 
 	case StateExecuteTask:
 		// check all tasks
@@ -509,15 +520,31 @@ func (b *SummonersWar) GetState() BotState {
 	return b.currentState
 }
 
-func (b *SummonersWar) LoadStatus(index int, key string) any {
-	return b.taskStatuses[index]
-	// return nil
+// func (b *SummonersWar) LoadStatus(index int, key string) any {
+// 	return b.taskStatus[index]
+// 	// return nil
+// }
+
+func (b *SummonersWar) SaveStatus(key string, v any) {
+	switch key {
+	case "rune_combination":
+		b.taskStatus.RuneCombination = v
+	}
+
+	data, err := yaml.Marshal(b.taskStatus)
+	if err != nil {
+		b.log.Errorf("cannot marshal yaml: %+v", err)
+	}
+	err = os.WriteFile(StatusFile, data, 0644)
+	if err != nil {
+		b.log.Errorf("cannot write status file '%s': %+v", StatusFile, err)
+	}
+	b.log.Info("save status")
 }
 
-func (b *SummonersWar) SaveStatus(index int, key string, v any) {
-	b.taskStatuses[index] = v
-	s := TaskStatus{Tasks: b.taskStatuses}
-	data, err := yaml.Marshal(s)
+func (b *SummonersWar) SaveStatusByIndex(index int, key string, v any) {
+	b.taskStatus.Tasks[index] = v
+	data, err := yaml.Marshal(b.taskStatus)
 	if err != nil {
 		b.log.Errorf("cannot marshal yaml: %+v", err)
 	}
