@@ -74,7 +74,6 @@ func laodYAMLFile[T any](fileName string) (T, error) {
 }
 
 type TaskStatus struct {
-	RuneCombination any
 	Tasks           []any `json:"tasks"`
 	Names           map[string]any
 }

@@ -112,7 +112,19 @@ func (b *SummonersWar) Start() {
 		b.log.Infof("config reloaded")
 	}
 
-	b.LoadTasks()
+	// load task status
+	status, err := LoadTaskStatus(StatusFile)
+	if err != nil {
+		b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
+		b.taskStatus = TaskStatus{
+			Names: make(map[string]any),
+		}
+	} else {
+		b.taskStatus = status
+		b.log.Infof("status reloaded")
+	}
+
+	b.InitTasks()
 
 	b.isRunning.Store(true)
 	b.log.Infof("bot is continue running")
@@ -135,7 +147,7 @@ func (b *SummonersWar) Reset() {
 	}
 }
 
-func (b *SummonersWar) LoadTasks() {
+func (b *SummonersWar) InitTasks() {
 	if b.setting.AreaExploration != nil {
 		b.taskAreaExploration = area_exploration.NewAreaExploration(0, b, *b.setting.AreaExploration)
 	}
@@ -156,7 +168,7 @@ func (b *SummonersWar) LoadTasks() {
 		case taskSetting.AutoFarm != nil:
 			task = auto_farm.NewAutoFarm(index, b, *taskSetting.AutoFarm)
 		case taskSetting.RuneCombination != nil:
-			task = rune_combination.NewRuneCombination(index, b, *taskSetting.RuneCombination)
+			task = rune_combination.NewRuneCombination(b, taskSetting.RuneCombination)
 		default:
 			continue
 		}
@@ -165,34 +177,37 @@ func (b *SummonersWar) LoadTasks() {
 			// TODO: handle duplicated task
 		}
 		b.tasksByName[task.GetName()] = task
+		if v, found := b.taskStatus.Names[task.GetName()]; found {
+			task.LoadStatus(v)
+		}
 		index++
 	}
 
-	// load task status
-	status, err := LoadTaskStatus(StatusFile)
-	if err != nil {
-		b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
-		b.taskStatus = TaskStatus{
-			Names: make(map[string]any),
-		}
-	} else {
-		b.taskStatus = status
-		if b.taskStatus.Names == nil {
-			b.taskStatus.Names = make(map[string]any)
-		}
-		loaded := make(map[string]struct{})
+	// // load task status
+	// status, err := LoadTaskStatus(StatusFile)
+	// if err != nil {
+	// 	b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
+	// 	b.taskStatus = TaskStatus{
+	// 		Names: make(map[string]any),
+	// 	}
+	// } else {
+	// 	b.taskStatus = status
+	// 	if b.taskStatus.Names == nil {
+	// 		b.taskStatus.Names = make(map[string]any)
+	// 	}
+	// 	loaded := make(map[string]struct{})
 
-		for name, v := range b.taskStatus.Names {
-			b.tasksByName[name].LoadStatus(v)
-			loaded[name] = struct{}{}
-		}
+	// 	for name, v := range b.taskStatus.Names {
+	// 		b.tasksByName[name].LoadStatus(v)
+	// 		loaded[name] = struct{}{}
+	// 	}
 
-		for i := 0; i < len(b.tasks) && i < len(b.taskStatus.Tasks); i++ {
-			if _, found := loaded[b.tasks[i].GetName()]; found {
-				continue
-			}
-			b.tasks[i].LoadStatus(b.taskStatus.Tasks[i])
-		}
+	// 	for i := 0; i < len(b.tasks) && i < len(b.taskStatus.Tasks); i++ {
+	// 		if _, found := loaded[b.tasks[i].GetName()]; found {
+	// 			continue
+	// 		}
+	// 		b.tasks[i].LoadStatus(b.taskStatus.Tasks[i])
+	// 	}
 
 		// add more statuses
 		// if len(b.taskStatus.Tasks) < len(b.tasks) {
@@ -204,8 +219,8 @@ func (b *SummonersWar) LoadTasks() {
 
 		// b.taskRuneCombination.LoadStatus(b.taskStatus.RuneCombination)
 
-		b.log.Infof("status reloaded")
-	}
+	// 	b.log.Infof("status reloaded")
+	// }
 
 	b.log.Infof("%d tasks loaded", index)
 }
@@ -557,10 +572,6 @@ func (b *SummonersWar) SaveStatus(key string, v any) {
 		b.log.Errorf("cannot write status file '%s': %+v", StatusFile, err)
 	}
 	b.log.Info("save status")
-}
-
-func (b *SummonersWar) SaveStatusByIndex(_ int, key string, v any) {
-	b.SaveStatus(key, v)
 }
 
 func (b *SummonersWar) ExitTask() {

@@ -32,19 +32,21 @@ var (
 
 type task struct {
 	tasks.BaseTask
-	setting TaskSetting
-	status  TaskStatus
+
+	setting *TaskSetting
+	status  *TaskStatus
 }
 
 type TaskSetting struct {
-	Enable bool
+	domain.TaskSettingBase
 }
 
 type TaskStatus struct {
+	domain.TaskStatusBase
+
 	Name         string
 	State        domain.TaskState
 	LastExecuted time.Time
-	NextExecuted time.Time
 	NextReset    time.Time
 	Repeat       int
 	Points       []image.Point
@@ -61,9 +63,12 @@ type DailyStats struct {
 var _ domain.Task = (*task)(nil)
 
 func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+	status := &TaskStatus{}
 	t := &task{
-		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		setting: &setting,
+		status:  status,
+		BaseTask: tasks.NewBaseTask(
+			manager, &setting, status,
 			map[domain.TaskState]string{
 				stateGoToMainMenu:       "go_to_main_menu",
 				stateGoToArena:          "go_to_arena",
@@ -84,7 +89,7 @@ func (t *task) LoadStatus(in any) {
 	err := t.ConvertTo(in, &t.status)
 	if err != nil {
 		t.Log.Warnf("reset status, cannot the current: %+v", err)
-		t.status = TaskStatus{}
+		t.status = &TaskStatus{}
 	} else {
 		t.SetState(t.status.State)
 	}
@@ -205,10 +210,10 @@ func (t *task) Do(m gocv.Mat) bool {
 				tasks.WithClickOffset(roi.ChallengeArena.RefreshDialog),
 			):
 				// refresh
-				t.status.NextExecuted = time.Now().Add(resetCoolDown)
+				t.status.NextExecution = time.Now().Add(resetCoolDown)
 				t.status.Repeat = 0
 				t.status.Stats[0].Refresh++
-				t.Log.Infof("next execute at %v", t.status.NextExecuted.Format(time.RFC3339))
+				t.Log.Infof("next execute at %v", t.status.NextExecution.Format(time.RFC3339))
 				t.SaveStatus()
 
 			case t.SearchROI(
@@ -219,7 +224,7 @@ func (t *task) Do(m gocv.Mat) bool {
 			):
 				// TODO: refresh with crystal
 				// skip during development
-				t.status.NextExecuted = time.Now().Add(resetCoolDown)
+				t.status.NextExecution = time.Now().Add(resetCoolDown)
 				t.status.Repeat = 0
 				t.SaveStatus()
 				t.Log.Infof("skip during development")
@@ -347,14 +352,14 @@ func (t *task) Do(m gocv.Mat) bool {
 	return false
 }
 
-func (t *task) IsReady() bool {
-	if !t.setting.Enable {
-		return false
-	}
-	return t.status.NextExecuted.IsZero() || time.Now().After(t.status.NextExecuted)
-}
+// func (t *task) IsReady() bool {
+// 	if !t.setting.Enable {
+// 		return false
+// 	}
+// 	return t.status.NextExecuted.IsZero() || time.Now().After(t.status.NextExecuted)
+// }
 
-func (t *task) SaveStatus() {
-	t.status.State = t.State
-	t.Manager.SaveStatusByIndex(t.Index, t.Name, t.status)
-}
+// func (t *task) SaveStatus() {
+// 	t.status.State = t.State
+// 	t.Manager.SaveStatus(t.Name, t.status)
+// }

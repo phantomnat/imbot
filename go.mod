@@ -8,6 +8,7 @@ require (
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/pkg/errors v0.9.1
 	github.com/robotn/gohook v0.40.0
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.23.0
 	gocv.io/x/gocv v0.31.0
 	golang.org/x/sys v0.2.0
@@ -42,7 +43,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.10 // indirect
 	github.com/srwiley/oksvg v0.0.0-20200311192757-870daf9aa564 // indirect
 	github.com/srwiley/rasterx v0.0.0-20200120212402-85cb7272f5e9 // indirect
-	github.com/stretchr/testify v1.8.1 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tevino/abool v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.11 // indirect
 	github.com/tklauser/numcpus v0.6.0 // indirect

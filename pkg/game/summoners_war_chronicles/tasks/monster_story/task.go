@@ -10,12 +10,15 @@ import (
 
 type task struct {
 	tasks.BaseTask
-	setting TaskSetting
-	// status  TaskStatus
+	setting *TaskSetting
+	status  *TaskStatus
 }
 
 type TaskSetting struct {
-	Enable bool
+	domain.TaskSettingBase
+}
+type TaskStatus struct {
+	domain.TaskStatusBase
 }
 
 var _ domain.Task = (*task)(nil)
@@ -25,9 +28,13 @@ const (
 )
 
 func NewMonsterStory(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+	status := &TaskStatus{}
+
 	t := &task{
-		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		setting: &setting,
+		status:  status,
+		BaseTask: tasks.NewBaseTask(
+			manager, &setting, status,
 			map[domain.TaskState]string{
 				stateFindAndAcceptQuest: "find_and_accept_quest",
 			},

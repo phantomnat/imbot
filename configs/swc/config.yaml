@@ -1,6 +1,66 @@
-mode: storyQuest 
+# emu config
+
+emu: bluestack 
+# emu: mumuwa
+# adbPort: 
+
+
+# bot config
+
+# mode: storyQuest
 # mode: explorationQuest
-# mode: monsterStory
+mode: monsterStory
+
+areaExploration:
+  # enable: true
+  enable: false
+
+monsterStory:
+#   enable: true
+  enable: false
+
+# energy - HP
+# guard  - DEF
+# blade  - CRI rate
+# rage   - CRI dmg
+# fatal  - ATK
+# swift  - ATK SPD
+# focus  - Acc
+# endure - RES
+# foresight - Evasion
+# assemble - Precision
+# runeCombination:
+#   enable: true
+#   steps:
+#     - runeSet: [swift, foresight] # ensure mixes
+#       stars: 4
+#     - runeSet: [blade]
+#       stars: 4
+#     - runeSet: [rage]
+#       stars: 4
+#     - runeSet: [energy]
+#       stars: 4
+#     - runeSet: [guard]
+#       stars: 4
+#     - runeSet: [fatal]
+#       stars: 4
+
+    #   slots: [1]
+    # - runeSet: [swift, foresight]
+    #   slots: [1,2]
+    # - runeSet: [swift, foresight]
+    #   slots: [1,2,3]
+    # - runeSet: [swift, foresight]
+    #   slots: [1,2,3,4]
+    # - runeSet: [swift, foresight]
+    #   slots: [1,2,3,4,5]
+    # - runeSet: [swift, foresight]
+    #   slots: [1,2,3,4,5,6]
+    # - set: [energy]
+    # - set: [guard]
+    # - set: [blade]
+    # - set: [rage]
+    # - set: [fatal]
 
 # pvp
 # every 30 minutes
@@ -14,12 +74,54 @@ mode: storyQuest
 resetAt: 00:00
 
 tasks:
+- challengeArena:
+    enable: false
+
 - repeatQuest:
-    enable: true
+    enable: false
     resetWithCrystalPerDay: 2
     map: rudelin # tesca, ayah, flurence, rukurangma, kontana
     rewardTicket: pathOfGrowth # essenceDungeon, challengeArena
-- challengeArena:
-    enable: true
 
+# - brawlArena:
+#     enable: true
+#     times: 5
+
+# energy - HP
+# guard  - DEF
+# blade  - CRI rate
+# rage   - CRI dmg
+# fatal  - ATK
+# swift  - ATK SPD
+# focus  - Acc
+# endure - RES
+# foresight - Evasion
+# assemble - Precision
+
+- runeCombination:
+    enable: true
+    Cooldown: 60m
+    steps:
+      - runeSet: [swift, foresight] # ensure mixes
+        stars: 4
+      - runeSet: [endure, assemble] # ensure mixes
+        stars: 4
+      - runeSet: [blade]
+        stars: 4
+      - runeSet: [rage]
+        stars: 4
+      - runeSet: [energy]
+        stars: 4
+      - runeSet: [guard]
+        stars: 4
+      - runeSet: [fatal]
+        stars: 4
+      - runeSet: [focus]
+        stars: 4
+
+- autoFarm:
+    enable: true
+    # black_ash_harpu
+    miniBoss: black_ash_harpu
+    interval: 11s
 

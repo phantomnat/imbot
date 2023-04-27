@@ -12,12 +12,12 @@ import (
 
 type task struct {
 	tasks.BaseTask
-	setting TaskSetting
+	setting *TaskSetting
 	// status  TaskStatus
 }
 
 type TaskSetting struct {
-	Enable bool
+	domain.TaskSettingBase
 }
 
 var _ domain.Task = (*task)(nil)
@@ -27,9 +27,10 @@ const (
 )
 
 func NewAreaExploration(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+	status := &domain.TaskStatusBase{}
 	t := &task{
-		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		setting: &setting,
+		BaseTask: tasks.NewBaseTask(manager, &setting, status,
 			map[domain.TaskState]string{
 				stateFindAndAcceptQuest: "find_and_accept_quest",
 			},

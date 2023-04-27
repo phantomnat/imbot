@@ -29,39 +29,6 @@ type Screen interface {
 	Back()
 }
 
-type TaskState int
-
-const (
-	TaskStateBegin TaskState = 0
-	TaskStateEnd   TaskState = 9999
-)
-
-type Task interface {
-	GetName() string
-
-	IsReady() bool
-
-	// NeedMainScreen indicates that task required to go to main screen before start
-	IsNeedMainScreen() bool
-
-	// CanInterrupt returns true if task can be cancel
-	CanInterrupt() bool
-
-	// Do the task
-	Do(m gocv.Mat) bool
-
-	// Exit the current task and go to main screen
-	RequestExit()
-
-	// GetState returns state in string
-	GetState() string
-
-	LoadStatus(any)
-
-	Reset()
-	// UpdateSetting(v any)
-}
-
 type Manager interface {
 	// ExitTask resets the current task index to unknown
 	ExitTask()
@@ -72,7 +39,6 @@ type Manager interface {
 	MatchInROI(m gocv.Mat, roi image.Rectangle, o MatchOption) (bool, image.Point)
 
 	// emu
-	Back()
 	Click(x, y int)
 	ClickPt(pt image.Point)
 	Drag(pt1, pt2 image.Point)
@@ -91,5 +57,4 @@ type Manager interface {
 type StatusManager interface {
 	// LoadStatus(index int, key string) any
 	SaveStatus(key string, v any)
-	SaveStatusByIndex(index int, key string, v any)
 }

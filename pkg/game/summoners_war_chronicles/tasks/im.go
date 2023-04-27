@@ -37,6 +37,7 @@ func (o *SearchROIOption) apply(opts ...SearchROIOptionFunc) {
 		o.wait = &v
 	}
 }
+
 func (o *SearchROIOption) isEmpty() bool {
 	if o == nil {
 		return true
@@ -52,35 +53,42 @@ func WithClick() SearchROIOptionFunc {
 		o.needClick = true
 	}
 }
+
 func WithPath(paths ...string) SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		o.path = strings.Join(paths, ".")
 	}
 }
+
 func WithROI(roi image.Rectangle) SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		o.roi = roi
 	}
 }
+
 func WithDebugMatch() SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		o.debugTemplateMatch = true
 	}
 }
+
 func WithWaitMs(ms int) SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		v := time.Duration(ms) * time.Millisecond
 		o.wait = &v
 	}
 }
+
 func WithNoWait() SearchROIOptionFunc {
 	return WithWaitMs(0)
 }
+
 func WithNextState(s domain.TaskState) SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		o.nextState = &s
 	}
 }
+
 func WithClickOffset(roi image.Rectangle) SearchROIOptionFunc {
 	return func(o *SearchROIOption) {
 		o.clickOffset = roi.Min

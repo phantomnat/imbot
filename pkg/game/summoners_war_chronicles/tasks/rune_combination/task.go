@@ -16,13 +16,16 @@ import (
 
 type task struct {
 	tasks.BaseTask
-	setting        TaskSetting
-	status         TaskStatus
+
+	setting *TaskSetting
+	status  *TaskStatus
+
 	ExitableStates map[domain.TaskState]struct{}
 }
 
 type TaskSetting struct {
-	Enable   bool
+	domain.TaskSettingBase
+
 	Cooldown domain.Duration
 	Steps    []RuneCombineStep
 }
@@ -33,14 +36,15 @@ type RuneCombineStep struct {
 }
 
 type TaskStatus struct {
-	State        domain.TaskState
-	NextExecuted time.Time
-	NextReset    time.Time
-	StepIdx      int
-	RuneLimit    map[roi.RuneSet]int
-	RuneChoices  []roi.RuneSet
-	RuneCount    int
-	RunesCount   map[roi.RuneSet]int
+	domain.TaskStatusBase
+
+	State       domain.TaskState
+	NextReset   time.Time
+	StepIdx     int
+	RuneLimit   map[roi.RuneSet]int
+	RuneChoices []roi.RuneSet
+	RuneCount   int
+	RunesCount  map[roi.RuneSet]int
 
 	CurrentRuneSet roi.RuneSet
 	LastRuneSet    roi.RuneSet
@@ -79,10 +83,13 @@ const (
 	runeLimit = 3
 )
 
-func NewRuneCombination(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+func NewRuneCombination(manager domain.Manager, setting *TaskSetting) domain.Task {
+	status := &TaskStatus{}
 	t := &task{
 		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		status:  status,
+		BaseTask: tasks.NewBaseTask(
+			manager, setting, status,
 			map[domain.TaskState]string{
 				stateGoToRune:          "go_to_rune",
 				stateEnsureRuneAlchemy: "ensure_rune_alchemy",
@@ -104,20 +111,15 @@ func NewRuneCombination(index int, manager domain.Manager, setting TaskSetting) 
 	return t
 }
 
-func (t *task) LoadStatus(in any) {
-	err := t.ConvertTo(in, &t.status)
-	if err != nil {
-		t.Log.Warnf("reset status, cannot the current: %+v", err)
-		t.status = TaskStatus{}
-	} else {
-		t.SetState(t.status.State)
-	}
-}
-
-func (t *task) SaveStatus() {
-	t.status.State = t.State
-	t.Manager.SaveStatus(t.Name, t.status)
-}
+// func (t *task) LoadStatus(in any) {
+// 	err := t.ConvertTo(in, &t.status)
+// 	if err != nil {
+// 		t.Log.Warnf("reset status, cannot the current: %+v", err)
+// 		t.status = &TaskStatus{}
+// 	} else {
+// 		t.SetState(t.status.State)
+// 	}
+// }
 
 var prefix = "rune"
 
@@ -159,20 +161,15 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 	case domain.TaskStateBegin:
 
 		t.status.StepIdx = 0
-
 		// check reset
-		if time.Now().After(t.status.NextReset) {
-			// reset
-			now := time.Now()
-			today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		t.status.Reset(func(today time.Time) {
 			if len(t.status.Stats) == 0 || !today.Equal(t.status.Stats[0].Date) {
 				t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
 			}
 			if len(t.status.Stats) > 30 {
 				t.status.Stats = t.status.Stats[:30]
 			}
-			t.status.NextReset = today.AddDate(0, 0, 1)
-		}
+		})
 		t.SaveStatus()
 
 		// TODO: go to rune alchemy from main screen
@@ -230,7 +227,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		t.status.StepIdx++
 		if t.status.StepIdx >= len(t.setting.Steps) {
 			t.status.StepIdx = 0
-			t.status.NextExecuted = time.Now().Add(time.Duration(t.setting.Cooldown))
+			t.status.NextExecution = time.Now().Add(time.Duration(t.setting.Cooldown))
 			t.SetState(stateGoToMainScreen)
 		} else {
 			// deselect rune
@@ -465,14 +462,4 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		triggered = false
 	}
 	return
-}
-
-func (t *task) IsReady() bool {
-	if !t.setting.Enable {
-		return false
-	}
-	if t.status.NextExecuted.IsZero() {
-		return true
-	}
-	return time.Now().After(t.status.NextExecuted)
 }

@@ -38,7 +38,7 @@ type BotRunningState string
 
 type BloonsTD6 struct {
 	log            *zap.SugaredLogger
-	screen         *screen.Screen
+	screen         domain.Screen
 	currentState   BotState
 	muCurrentState sync.RWMutex
 	// nextState    BotState

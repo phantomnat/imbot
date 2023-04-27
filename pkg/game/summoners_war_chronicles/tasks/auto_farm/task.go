@@ -12,20 +12,24 @@ import (
 
 type task struct {
 	tasks.BaseTask
-	setting TaskSetting
-	status  TaskStatus
+
+	setting *TaskSetting
+	status  *TaskStatus
 }
 
 type TaskSetting struct {
-	Enable   bool
+	domain.TaskSettingBase
+
 	MiniBoss string
 	Interval domain.Duration
 }
 
 type TaskStatus struct {
-	State         domain.TaskState
-	NextExecution time.Time
-	LastMoving    time.Time
+	domain.TaskStatusBase
+
+	// State         domain.TaskState
+	// NextExecution time.Time
+	LastMoving time.Time
 }
 
 var _ domain.Task = (*task)(nil)
@@ -44,9 +48,12 @@ const (
 )
 
 func NewAutoFarm(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+	status := &TaskStatus{}
 	t := &task{
-		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		setting: &setting,
+		status:  status,
+		BaseTask: tasks.NewBaseTask(
+			manager, &setting, status,
 			map[domain.TaskState]string{
 				stateGoToMainScreen:   "go_to_main_screen",
 				stateOpenMap:          "open_map",
@@ -102,6 +109,9 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 			t.Manager.ClickPt(roi.AutoFarm.PtOpenCreatureList)
 			t.WaitMs(1000)
 			t.SetState(stateFindCreature)
+
+		case time.Since(t.StateChangedAt).Seconds() > 5:
+			t.SetState(stateGoToMainScreen)
 		}
 
 	case stateFindCreature:
@@ -148,7 +158,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 			tasks.WithROI(roi.MainScreen.AutoBattleIcon),
 			tasks.WithClick(),
 			tasks.WithWaitMs(800),
-			tasks.WithDebugMatch(),
+			// tasks.WithDebugMatch(),
 			// tasks.WithNextState(domain.TaskStateEnd),
 		) {
 			return
@@ -172,10 +182,9 @@ func (t *task) IsReady() bool {
 	if !t.setting.Enable {
 		return false
 	}
-
 	return t.status.NextExecution.IsZero() || time.Now().After(t.status.NextExecution)
 }
 
 func (t *task) SaveStatus() {
-	t.Manager.SaveStatusByIndex(t.Index, t.Name, t.status)
+	t.Manager.SaveStatus(t.Name, t.status)
 }

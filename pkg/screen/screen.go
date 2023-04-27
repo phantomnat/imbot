@@ -28,6 +28,8 @@ type Screen struct {
 	buf        imageBuffer
 }
 
+var _ domain.Screen = (*Screen)(nil)
+
 func NewFromTitle(title string) (*Screen, error) {
 	hwnd := robotgo.FindWindow(title)
 	if hwnd == 0 {
@@ -377,4 +379,9 @@ func (s *Screen) move(x, y int) {
 		},
 	}
 	win.SendInput(1, unsafe.Pointer(&input), int32(unsafe.Sizeof(input)))
+}
+
+func (s *Screen) Back() {
+}
+func (s *Screen) MouseDragDuration(x1, y1, x2, y2, waitMs int) {
 }
