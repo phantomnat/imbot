@@ -52,12 +52,13 @@ type SummonersWar struct {
 
 	setting          Setting
 	tasks            []domain.Task
+	tasksByName      map[string]domain.Task
 	taskStatus       TaskStatus
 	currentTaskIndex int
 
 	taskAreaExploration domain.Task
 	taskMonsterStory    domain.Task
-	taskRuneCombination domain.Task
+	// taskRuneCombination domain.Task
 }
 
 var _ domain.Game = (*SummonersWar)(nil)
@@ -126,7 +127,12 @@ func (b *SummonersWar) Reset() {
 	b.log.Debugf("reset!")
 	b.Pause()
 	b.SetState(StartState)
-	b.taskRuneCombination.Reset()
+	for _, t := range b.tasks {
+		if t == nil {
+			continue
+		}
+		t.Reset()
+	}
 }
 
 func (b *SummonersWar) LoadTasks() {
@@ -136,22 +142,29 @@ func (b *SummonersWar) LoadTasks() {
 	if b.setting.MonsterStory != nil {
 		b.taskMonsterStory = monster_story.NewMonsterStory(0, b, *b.setting.MonsterStory)
 	}
-	if b.setting.RuneCombination != nil {
-		b.taskRuneCombination = rune_combination.NewRuneCombination(0, b, *b.setting.RuneCombination)
-	}
 
 	b.tasks = make([]domain.Task, 0, len(b.setting.Tasks))
+	b.tasksByName = make(map[string]domain.Task, len(b.setting.Tasks))
+
 	index := 0
 	for i := range b.setting.Tasks {
-		task := b.setting.Tasks[i]
+		var task domain.Task
+		taskSetting := b.setting.Tasks[i]
 		switch {
-		case task.ChallengeArena != nil:
-			b.tasks = append(b.tasks, challenge_arena.NewChallengeArenaTask(index, b, *task.ChallengeArena))
-		case task.AutoFarm != nil:
-			b.tasks = append(b.tasks, auto_farm.NewAutoFarm(index, b, *task.AutoFarm))
+		case taskSetting.ChallengeArena != nil:
+			task = challenge_arena.NewChallengeArenaTask(index, b, *taskSetting.ChallengeArena)
+		case taskSetting.AutoFarm != nil:
+			task = auto_farm.NewAutoFarm(index, b, *taskSetting.AutoFarm)
+		case taskSetting.RuneCombination != nil:
+			task = rune_combination.NewRuneCombination(index, b, *taskSetting.RuneCombination)
 		default:
 			continue
 		}
+		b.tasks = append(b.tasks, task)
+		if _, exist := b.tasksByName[task.GetName()]; exist {
+			// TODO: handle duplicated task
+		}
+		b.tasksByName[task.GetName()] = task
 		index++
 	}
 
@@ -159,23 +172,37 @@ func (b *SummonersWar) LoadTasks() {
 	status, err := LoadTaskStatus(StatusFile)
 	if err != nil {
 		b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
-		b.taskStatus = TaskStatus{}
+		b.taskStatus = TaskStatus{
+			Names: make(map[string]any),
+		}
 	} else {
 		b.taskStatus = status
+		if b.taskStatus.Names == nil {
+			b.taskStatus.Names = make(map[string]any)
+		}
+		loaded := make(map[string]struct{})
+
+		for name, v := range b.taskStatus.Names {
+			b.tasksByName[name].LoadStatus(v)
+			loaded[name] = struct{}{}
+		}
 
 		for i := 0; i < len(b.tasks) && i < len(b.taskStatus.Tasks); i++ {
+			if _, found := loaded[b.tasks[i].GetName()]; found {
+				continue
+			}
 			b.tasks[i].LoadStatus(b.taskStatus.Tasks[i])
 		}
 
 		// add more statuses
-		if len(b.taskStatus.Tasks) < len(b.tasks) {
-			diff := len(b.tasks) - len(b.taskStatus.Tasks)
-			for i := 0; i < diff; i++ {
-				b.taskStatus.Tasks = append(b.taskStatus.Tasks, nil)
-			}
-		}
+		// if len(b.taskStatus.Tasks) < len(b.tasks) {
+		// 	diff := len(b.tasks) - len(b.taskStatus.Tasks)
+		// 	for i := 0; i < diff; i++ {
+		// 		b.taskStatus.Tasks = append(b.taskStatus.Tasks, nil)
+		// 	}
+		// }
 
-		b.taskRuneCombination.LoadStatus(b.taskStatus.RuneCombination)
+		// b.taskRuneCombination.LoadStatus(b.taskStatus.RuneCombination)
 
 		b.log.Infof("status reloaded")
 	}
@@ -236,8 +263,6 @@ func (b *SummonersWar) handleState() {
 			b.SetState(StateDoAreaExplorationQuest)
 		case b.setting.MonsterStory != nil && b.setting.MonsterStory.Enable:
 			b.SetState(StateDoMonsterStoryQuest)
-		case b.setting.RuneCombination != nil && b.setting.RuneCombination.Enable:
-			b.SetState(StateDoRuneCombination)
 		default:
 			b.SetState(StateExecuteTask)
 		}
@@ -246,8 +271,6 @@ func (b *SummonersWar) handleState() {
 		b.taskAreaExploration.Do(m)
 	case StateDoMonsterStoryQuest:
 		b.taskMonsterStory.Do(m)
-	case StateDoRuneCombination:
-		b.taskRuneCombination.Do(m)
 
 	case StateExecuteTask:
 		// check all tasks
@@ -508,7 +531,9 @@ func waitMs(v int) {
 func (b *SummonersWar) SetState(next BotState) {
 	b.muCurrentState.Lock()
 	defer b.muCurrentState.Unlock()
-
+	if b.currentState == next {
+		return
+	}
 	b.log.Debugf("changing bot state %s -> %s", b.currentState, next)
 	b.currentState = next
 }
@@ -520,16 +545,8 @@ func (b *SummonersWar) GetState() BotState {
 	return b.currentState
 }
 
-// func (b *SummonersWar) LoadStatus(index int, key string) any {
-// 	return b.taskStatus[index]
-// 	// return nil
-// }
-
 func (b *SummonersWar) SaveStatus(key string, v any) {
-	switch key {
-	case "rune_combination":
-		b.taskStatus.RuneCombination = v
-	}
+	b.taskStatus.Names[key] = v
 
 	data, err := yaml.Marshal(b.taskStatus)
 	if err != nil {
@@ -542,17 +559,8 @@ func (b *SummonersWar) SaveStatus(key string, v any) {
 	b.log.Info("save status")
 }
 
-func (b *SummonersWar) SaveStatusByIndex(index int, key string, v any) {
-	b.taskStatus.Tasks[index] = v
-	data, err := yaml.Marshal(b.taskStatus)
-	if err != nil {
-		b.log.Errorf("cannot marshal yaml: %+v", err)
-	}
-	err = os.WriteFile(StatusFile, data, 0644)
-	if err != nil {
-		b.log.Errorf("cannot write status file '%s': %+v", StatusFile, err)
-	}
-	b.log.Info("save status")
+func (b *SummonersWar) SaveStatusByIndex(_ int, key string, v any) {
+	b.SaveStatus(key, v)
 }
 
 func (b *SummonersWar) ExitTask() {

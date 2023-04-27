@@ -51,18 +51,24 @@ var (
 	ROIAreaExplorationNewQuest = Rect(196, 214, 30, 480)
 
 	// Main screen
-	ROIMainScreen = struct {
+	MainScreen = struct {
 		CoinIcon    image.Rectangle
 		CrystalIcon image.Rectangle
 
 		AutoBattleIcon image.Rectangle
 		PtAutoBattle   image.Point
+		PtBasicAttack  image.Point
+
+		PtMinimap image.Point
 	}{
 		CoinIcon:    Rect(517, 15, 37, 38),
 		CrystalIcon: Rect(646, 13, 36, 41),
 
 		AutoBattleIcon: Rect(925, 654, 47, 48),
 		PtAutoBattle:   Pt(950, 680),
+		PtBasicAttack:  Pt(1160, 600),
+
+		PtMinimap: Pt(180, 100),
 	}
 
 	// Main menu
@@ -112,6 +118,31 @@ var (
 		RightSide:     Rect(798, 211, 471, 428),
 
 		PtRune: Pt(940, 390),
+	}
+
+	// Auto Farm
+	AutoFarm = struct {
+		PtOpenCreatureList image.Point
+
+		CreatureList image.Rectangle
+
+		PtCreatureStartDrag image.Point
+		PtCreatureStopDrag  image.Point
+
+		MonsterName image.Rectangle
+
+		Moving image.Rectangle
+	}{
+		PtOpenCreatureList: Pt(1200, 435),
+
+		CreatureList: Rect(811, 136, 420, 468),
+
+		PtCreatureStartDrag: Pt(966, 594),
+		PtCreatureStopDrag:  Pt(966, 144),
+
+		MonsterName: Rect(570, 13, 230, 30),
+
+		Moving: Rect(500, 535, 270, 35),
 	}
 
 	// Arena

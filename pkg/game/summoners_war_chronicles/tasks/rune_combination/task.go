@@ -22,9 +22,9 @@ type task struct {
 }
 
 type TaskSetting struct {
-	Enable bool
-	Stars  int
-	Steps  []RuneCombineStep
+	Enable   bool
+	Cooldown domain.Duration
+	Steps    []RuneCombineStep
 }
 
 type RuneCombineStep struct {
@@ -163,7 +163,8 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		// check reset
 		if time.Now().After(t.status.NextReset) {
 			// reset
-			today := time.Now().Truncate(24 * time.Hour)
+			now := time.Now()
+			today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 			if len(t.status.Stats) == 0 || !today.Equal(t.status.Stats[0].Date) {
 				t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
 			}
@@ -229,7 +230,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		t.status.StepIdx++
 		if t.status.StepIdx >= len(t.setting.Steps) {
 			t.status.StepIdx = 0
-			t.status.NextExecuted = time.Now().Add(time.Hour)
+			t.status.NextExecuted = time.Now().Add(time.Duration(t.setting.Cooldown))
 			t.SetState(stateGoToMainScreen)
 		} else {
 			// deselect rune
@@ -270,22 +271,32 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		case 1:
 			t.status.RuneLimit[t.status.RuneChoices[0]] = 3
 		case 2:
+			rc := t.status.RuneChoices[rand.Intn(len(t.status.RuneChoices))]
 			rs1 := t.status.RuneChoices[0]
 			rs2 := t.status.RuneChoices[1]
 			if t.status.RunesCount[rs1] > 0 && t.status.RunesCount[rs2] > 0 {
-
-			} else {
-				rc := t.status.RuneChoices[rand.Intn(len(t.status.RuneChoices))]
-				t.status.RuneLimit[rc] = 2
+				rc = rs1
+				if t.status.RunesCount[rs2] > t.status.RunesCount[rs1] {
+					rc = rs2
+				}
 			}
+			t.status.RuneLimit[rc] = 2
 		}
 
 		t.SetState(stateConfigStep)
 
 	case stateConfigStep:
 		switch {
-		case len(t.status.RuneChoices) > 1:
+		case len(t.status.RuneChoices) > 2:
 			idx := rand.Intn(len(t.status.RuneChoices))
+			t.status.CurrentRuneSet = t.status.RuneChoices[idx]
+			t.status.RuneChoices = remove(t.status.RuneChoices, idx)
+
+		case len(t.status.RuneChoices) == 2:
+			idx := 0
+			if t.status.LastRuneSet == t.status.RuneChoices[1] {
+				idx = 1
+			}
 			t.status.CurrentRuneSet = t.status.RuneChoices[idx]
 			t.status.RuneChoices = remove(t.status.RuneChoices, idx)
 
@@ -309,21 +320,6 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		}
 
 		t.SetState(stateApplyStep)
-
-		// switch {
-		// case t.SearchROI(m,
-		// 	tasks.WithROI(roi.RuneAlchemy.RuneCombination.SimpleSettingButtons),
-		// 	tasks.WithPath(prefix, "btn_simple_setting_apply"),
-		// 	tasks.WithNoWait(),
-		// 	tasks.WithDebugMatch(),
-		// ):
-
-		// 	t.SetState(stateApplyStep)
-
-		// default:
-		// 	t.Manager.ClickPt(roi.RuneAlchemy.RuneCombination.PtSimpleSetting)
-		// 	t.WaitMs(800)
-		// }
 
 	case stateApplyStep:
 		switch {
@@ -370,7 +366,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 
 		if len(runes) < t.status.RuneLimit[runeSet] {
 			// try new rune choice
-			t.SetState(stateInitStep)
+			t.SetState(stateConfigStep)
 			return
 		}
 
@@ -460,6 +456,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 		t.SaveStatus()
 
 	case domain.TaskStateEnd:
+		t.Exiting = false
 		t.SetState(domain.TaskStateBegin)
 		t.SaveStatus()
 		t.Exit()

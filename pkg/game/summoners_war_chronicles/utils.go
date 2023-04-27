@@ -65,10 +65,10 @@ func (b *SummonersWar) GetImageManager() domain.ImageManager {
 }
 
 func (b *SummonersWar) GoToMainScreen(m gocv.Mat) (done bool) {
-	foundCoin, _ := b.MatchInROI(m, roi.ROIMainScreen.CoinIcon, domain.MatchOption{
+	foundCoin, _ := b.MatchInROI(m, roi.MainScreen.CoinIcon, domain.MatchOption{
 		Path: "icon_coin",
 	})
-	foundCrystal, _ := b.MatchInROI(m, roi.ROIMainScreen.CrystalIcon, domain.MatchOption{
+	foundCrystal, _ := b.MatchInROI(m, roi.MainScreen.CrystalIcon, domain.MatchOption{
 		Path: "icon_crystal",
 	})
 
@@ -90,10 +90,10 @@ func (b *SummonersWar) GoToMainScreen(m gocv.Mat) (done bool) {
 }
 
 func (b *SummonersWar) IsOnMainScreen(m gocv.Mat) bool {
-	foundCoin, _ := b.MatchInROI(m, roi.ROIMainScreen.CoinIcon, domain.MatchOption{
+	foundCoin, _ := b.MatchInROI(m, roi.MainScreen.CoinIcon, domain.MatchOption{
 		Path: "icon_coin",
 	})
-	foundCrystal, _ := b.MatchInROI(m, roi.ROIMainScreen.CrystalIcon, domain.MatchOption{
+	foundCrystal, _ := b.MatchInROI(m, roi.MainScreen.CrystalIcon, domain.MatchOption{
 		Path: "icon_crystal",
 	})
 

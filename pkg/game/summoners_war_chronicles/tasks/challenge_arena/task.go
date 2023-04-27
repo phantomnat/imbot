@@ -348,10 +348,10 @@ func (t *task) Do(m gocv.Mat) bool {
 }
 
 func (t *task) IsReady() bool {
-	if t.status.NextExecuted.IsZero() {
-		return true
+	if !t.setting.Enable {
+		return false
 	}
-	return time.Now().After(t.status.NextExecuted)
+	return t.status.NextExecuted.IsZero() || time.Now().After(t.status.NextExecuted)
 }
 
 func (t *task) SaveStatus() {

@@ -34,14 +34,14 @@ type Setting struct {
 
 	AreaExploration *area_exploration.TaskSetting
 	MonsterStory    *monster_story.TaskSetting
-	RuneCombination *rune_combination.TaskSetting
 
 	Tasks []TaskSetting
 }
 
 type TaskSetting struct {
-	ChallengeArena *challenge_arena.TaskSetting
-	AutoFarm       *auto_farm.TaskSetting
+	ChallengeArena  *challenge_arena.TaskSetting
+	AutoFarm        *auto_farm.TaskSetting
+	RuneCombination *rune_combination.TaskSetting
 }
 
 func LoadSetting(fileName string) (Setting, error) {
@@ -76,6 +76,7 @@ func laodYAMLFile[T any](fileName string) (T, error) {
 type TaskStatus struct {
 	RuneCombination any
 	Tasks           []any `json:"tasks"`
+	Names           map[string]any
 }
 
 func LoadTaskStatus(fileName string) (TaskStatus, error) {
