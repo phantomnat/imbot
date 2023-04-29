@@ -11,6 +11,10 @@ emu: bluestack
 # mode: explorationQuest
 mode: monsterStory
 
+mainStory:
+  enable: false
+  # enable: true
+
 areaExploration:
   # enable: true
   enable: false
@@ -120,6 +124,7 @@ tasks:
         stars: 4
 
 - autoFarm:
+    # enable: false
     enable: true
     # black_ash_harpu
     miniBoss: black_ash_harpu

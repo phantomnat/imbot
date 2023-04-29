@@ -50,6 +50,7 @@ type Manager interface {
 	IsOnMainMenu(m gocv.Mat) (done bool)
 	HandleConversationDialog(m gocv.Mat) (done bool)
 	HandleQuestCompleted(m gocv.Mat) (done bool)
+	HandleVictory(m gocv.Mat) (done bool)
 
 	StatusManager
 }

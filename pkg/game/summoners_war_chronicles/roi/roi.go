@@ -15,6 +15,8 @@ var (
 	ROIModalComplete           = Rect(380, 598, 530, 64)
 	// ROIQuestCompleteBtns = Rect(506, 524, 270, 70)
 
+	ROIVictoryButtons = Rect(91, 547, 1100, 80)
+
 	QuestCompleted = struct {
 		Buttons    image.Rectangle
 		TapToClose image.Rectangle

@@ -9,6 +9,7 @@ import (
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	main_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/main_story"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
 )
@@ -32,6 +33,7 @@ type Setting struct {
 	Emu  EmuType
 	Mode BotMode
 
+	MainStory       *main_story.TaskSetting
 	AreaExploration *area_exploration.TaskSetting
 	MonsterStory    *monster_story.TaskSetting
 
@@ -74,8 +76,8 @@ func laodYAMLFile[T any](fileName string) (T, error) {
 }
 
 type TaskStatus struct {
-	Tasks           []any `json:"tasks"`
-	Names           map[string]any
+	Tasks []any `json:"tasks"`
+	Names map[string]any
 }
 
 func LoadTaskStatus(fileName string) (TaskStatus, error) {

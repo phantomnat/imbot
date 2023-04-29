@@ -185,3 +185,26 @@ func (b *SummonersWar) HandleQuestCompleted(m gocv.Mat) bool {
 
 	return true
 }
+
+func (b *SummonersWar) HandleVictory(m gocv.Mat) (done bool) {
+	prefix := "quest_complete"
+	done = true
+
+	// victory
+	{
+		foundTapToClose, pt := b.MatchInROI(m, roi.ROIVictoryButtons, domain.MatchOption{
+			Path: prefix + ".btn_victory_exit",
+			// Th:   0.01,
+			// PrintVal: true,
+		})
+		if foundTapToClose {
+			b.log.Infof("quest completed, click to exit")
+			b.ClickPt(pt)
+			waitMs(1500)
+			return
+		}
+	}
+
+	done = false
+	return
+}

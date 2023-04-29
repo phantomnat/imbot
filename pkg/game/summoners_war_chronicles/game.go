@@ -8,17 +8,16 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"gocv.io/x/gocv"
 	"sigs.k8s.io/yaml"
 
 	"github.com/phantomnat/imbot/pkg/domain"
-	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/roi"
 	"github.com/phantomnat/imbot/pkg/im"
 	"github.com/phantomnat/imbot/pkg/screen/mumu"
 
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	main_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/main_story"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
 )
@@ -56,9 +55,9 @@ type SummonersWar struct {
 	taskStatus       TaskStatus
 	currentTaskIndex int
 
+	taskMainStory       domain.Task
 	taskAreaExploration domain.Task
 	taskMonsterStory    domain.Task
-	// taskRuneCombination domain.Task
 }
 
 var _ domain.Game = (*SummonersWar)(nil)
@@ -148,6 +147,9 @@ func (b *SummonersWar) Reset() {
 }
 
 func (b *SummonersWar) InitTasks() {
+	if b.setting.MainStory != nil {
+		b.taskMainStory = main_story.NewMainStory(b, b.setting.MainStory)
+	}
 	if b.setting.AreaExploration != nil {
 		b.taskAreaExploration = area_exploration.NewAreaExploration(0, b, *b.setting.AreaExploration)
 	}
@@ -183,56 +185,13 @@ func (b *SummonersWar) InitTasks() {
 		index++
 	}
 
-	// // load task status
-	// status, err := LoadTaskStatus(StatusFile)
-	// if err != nil {
-	// 	b.log.Errorf("cannot load status from %s: %+v", StatusFile, err)
-	// 	b.taskStatus = TaskStatus{
-	// 		Names: make(map[string]any),
-	// 	}
-	// } else {
-	// 	b.taskStatus = status
-	// 	if b.taskStatus.Names == nil {
-	// 		b.taskStatus.Names = make(map[string]any)
-	// 	}
-	// 	loaded := make(map[string]struct{})
-
-	// 	for name, v := range b.taskStatus.Names {
-	// 		b.tasksByName[name].LoadStatus(v)
-	// 		loaded[name] = struct{}{}
-	// 	}
-
-	// 	for i := 0; i < len(b.tasks) && i < len(b.taskStatus.Tasks); i++ {
-	// 		if _, found := loaded[b.tasks[i].GetName()]; found {
-	// 			continue
-	// 		}
-	// 		b.tasks[i].LoadStatus(b.taskStatus.Tasks[i])
-	// 	}
-
-		// add more statuses
-		// if len(b.taskStatus.Tasks) < len(b.tasks) {
-		// 	diff := len(b.tasks) - len(b.taskStatus.Tasks)
-		// 	for i := 0; i < diff; i++ {
-		// 		b.taskStatus.Tasks = append(b.taskStatus.Tasks, nil)
-		// 	}
-		// }
-
-		// b.taskRuneCombination.LoadStatus(b.taskStatus.RuneCombination)
-
-	// 	b.log.Infof("status reloaded")
-	// }
-
 	b.log.Infof("%d tasks loaded", index)
 }
 
 // Run the main loop for bot
 func (b *SummonersWar) Run(done <-chan struct{}) {
 	oneThirtiethFrameTime := 33 * time.Millisecond
-	//
-	// b.currentStage = NewStageExpertDarkCastle(b)
 	b.SetState(StartState)
-	// b.SetState(DoQuest)
-	//b.SetState(PlayingState)
 
 	for {
 		select {
@@ -274,6 +233,8 @@ func (b *SummonersWar) handleState() {
 	switch b.GetState() {
 	case StartState:
 		switch {
+		case b.setting.MainStory != nil && b.setting.MainStory.Enable:
+			b.SetState(StateDoMainStoryQuest)
 		case b.setting.AreaExploration != nil && b.setting.AreaExploration.Enable:
 			b.SetState(StateDoAreaExplorationQuest)
 		case b.setting.MonsterStory != nil && b.setting.MonsterStory.Enable:
@@ -282,6 +243,8 @@ func (b *SummonersWar) handleState() {
 			b.SetState(StateExecuteTask)
 		}
 
+	case StateDoMainStoryQuest:
+		b.taskMainStory.Do(m)
 	case StateDoAreaExplorationQuest:
 		b.taskAreaExploration.Do(m)
 	case StateDoMonsterStoryQuest:
@@ -318,225 +281,9 @@ func (b *SummonersWar) handleState() {
 
 		// execute the current task
 		b.tasks[b.currentTaskIndex].Do(m)
-
-	case DoQuest:
-
-		// execute task
-		switch {
-		case b.handleMainScreen(m):
-		case b.handleQuestComplete(m):
-		case b.handleSleepScreen(m):
-		case b.handleAreaExploration(m):
-		case b.handleDialog(m):
-		}
-
 	case EndState:
 
 	}
-}
-
-func (b *SummonersWar) handleMonsterStoryQuestState(m gocv.Mat) bool {
-	prefix := "guard_journal"
-	log := b.log.Named("monster-story")
-
-	isQuestActive, _ := b.imMatchDefaultInROI(m, roi.ROILeftMenuDetail, prefix, "icon_ongoing_quest")
-	if isQuestActive {
-		log.Infof("waiting for the quest to finish...")
-		waitMs(500)
-		return true
-	}
-
-	// quest done
-	isQuestFinish, ptQuestFinishBtn := b.imMatchDefaultInROI(m, roi.ROILeftMenuDetail, prefix, "icon_finish_quest")
-	if isQuestFinish {
-		log.Infof("quest finish (%v)", ptQuestFinishBtn)
-		b.screen.MouseMoveAndClickByPoint(ptQuestFinishBtn)
-		waitMs(1000)
-		return true
-	}
-
-	return true
-}
-
-func (b *SummonersWar) handleMainScreen(m gocv.Mat) bool {
-	foundMainScreen, _ := b.MatchInROI(m, roi.ROITopRigthMenuBtn, domain.MatchOption{
-		Path: "btn_top_right_menu",
-		Th:   0.01,
-		// PrintVal: true,
-	})
-	if !foundMainScreen {
-		return false
-	}
-
-	isQuestActive, _ := b.MatchInROI(m, roi.ROILeftMenu, domain.MatchOption{
-		Path: "btn_quest_active",
-		Th:   0.01,
-		// PrintVal: true,
-		// Normalize: true,
-	})
-	if !isQuestActive {
-		b.log.Infof("tap to active quest")
-		b.screen.MouseMoveAndClickByPoint(roi.PtActiveQuest)
-		waitMs(1000)
-		return true
-	}
-
-	switch b.setting.Mode {
-	case BotModeStoryQuest:
-		canTapToAccept, ptAccept := b.MatchInROI(m, roi.ROILeftMenuDetail, domain.MatchOption{
-			Path: "accept_quest",
-			// Th:   0.01,
-			// PrintVal: true,
-			// Normalize: true,
-		})
-		if canTapToAccept {
-			b.log.Infof("tap to accept quest found (%v)", ptAccept)
-			b.screen.MouseMoveAndClickByPoint(ptAccept)
-			waitMs(500)
-			return true
-		}
-	case BotModeExplorationQuest:
-		canAcceptExploration, ptAcceptExploration := b.MatchInROI(m, roi.ROILeftMenuDetail, domain.MatchOption{
-			Path: "exploration_quest",
-			Th:   0.01,
-			// PrintVal: true,
-			// Normalize: true,
-		})
-		if canAcceptExploration {
-			b.log.Infof("tap to accept exploration quest found (%v)", ptAcceptExploration)
-			b.screen.MouseMoveAndClickByPoint(ptAcceptExploration)
-			waitMs(500)
-			return true
-		}
-	case BotModeMonsterStory:
-		return b.handleMonsterStoryQuestState(m)
-	default:
-		return false
-	}
-
-	// accept quest
-	// TODO: only when in main screen
-	return true
-}
-
-func (b *SummonersWar) handleQuestComplete(m gocv.Mat) bool {
-	// quest complete
-	prefix := "quest_complete"
-
-	foundTapToClose, _ := b.MatchInROI(m, roi.ROIQuestCompleteTapToClose, domain.MatchOption{
-		Path: prefix + ".txt_tab_to_close",
-		Th:   0.01,
-		// PrintVal: true,
-	})
-	if foundTapToClose {
-		b.log.Infof("quest completed, click anywhere to close")
-		b.screen.MouseMoveAndClickByPoint(roi.PtContinue)
-		waitMs(1000)
-		return true
-	}
-
-	foundModal, ptModalBtnOK := b.MatchInROI(m, roi.ROIModalComplete, domain.MatchOption{
-		Path: prefix + ".btn_ok_modal",
-		// PrintVal: true,
-	})
-	if foundModal {
-		b.log.Infof("modal found, click %v to close", ptModalBtnOK)
-		b.screen.MouseMoveAndClickByPoint(ptModalBtnOK)
-		waitMs(500)
-		return true
-	}
-
-	foundExp, _ := b.imMatchDefaultInROI(m, roi.ROIQuestCompleteExp, prefix, "exp")
-	mQuestCompleteBtns := m.Region(roi.ROIQuestCompleteBtns)
-	defer mQuestCompleteBtns.Close()
-
-	foundBtnOK, ptBtnOk := b.imMatchDefault(mQuestCompleteBtns, prefix, "btn_ok")
-	foundBtnNextStory, ptBtnNextStory := b.imMatchDefault(mQuestCompleteBtns, prefix, "btn_next_story")
-
-	var pt image.Point
-	var btn string
-	var found bool
-
-	switch {
-	case foundExp && foundBtnNextStory:
-		pt = ptBtnNextStory
-		btn = "next story"
-		found = true
-	case foundExp && foundBtnOK:
-		pt = ptBtnOk
-		btn = "ok"
-		found = true
-	}
-	if !found {
-		return false
-	}
-
-	b.log.Infof("quest completed, click %s (%v)", btn, pt)
-	b.screen.MouseMoveAndClickByPoint(ptFromROIandPt(roi.ROIQuestCompleteBtns, pt))
-	waitMs(500)
-	return true
-}
-
-func (b *SummonersWar) handleSleepScreen(m gocv.Mat) bool {
-	found, _ := b.imMatchDefaultInROI(m, roi.ROISleepModeLogo, "sleep_logo")
-	if !found {
-		return false
-	}
-
-	b.screen.MouseDrag(roi.PtSleepModeWakeFrom.X, roi.PtSleepModeWakeFrom.Y, roi.PtSleepModeWakeTo.X, roi.PtSleepModeWakeTo.Y)
-	waitMs(3000)
-	return true
-}
-
-func (b *SummonersWar) handleAreaExploration(m gocv.Mat) (found bool) {
-	prefix := "area_exploration"
-	found, _ = b.imMatchDefaultInROI(m, roi.ROIAreaExplorationTitle, prefix, "title_area_exploration")
-	if !found {
-		return
-	}
-
-	canAccept, ptAccept := b.imMatchDefaultInROI(m, roi.ROIAreaExplorationBtns, prefix, "btn_accept")
-	if canAccept {
-		b.log.Infof("accept exploration quest (%v)", ptAccept)
-		b.screen.MouseMoveAndClickByPoint(ptAccept)
-		waitMs(500)
-		return
-	}
-
-	isNewQuest, ptNewQuest := b.MatchInROI(m, roi.ROIAreaExplorationNewQuest, domain.MatchOption{
-		Path: prefix + ".icon_exclamation",
-	})
-	if isNewQuest {
-		b.log.Infof("choose new exploration quest (%v)", ptNewQuest)
-		b.screen.MouseMoveAndClickByPoint(ptNewQuest)
-		waitMs(1000)
-	}
-
-	return
-}
-
-func (b *SummonersWar) handleDialog(m gocv.Mat) bool {
-	prefix := "dialog"
-	// foundBtnBack, _ := b.imMatchDefaultInROI(m, roi.ROISleepModeLogo, prefix, "btn_back")
-	// foundTxtAuto, _ := b.imMatchDefaultInROI(m, roi.ROISleepModeLogo, prefix, "txt_auto")
-	foundBtnBack, _ := b.MatchInROI(m, roi.ROIBtnBack, domain.MatchOption{
-		Path: prefix + ".btn_back",
-		// Th:   0.01,
-		// PrintVal: true,
-	})
-	foundTxtAuto, _ := b.MatchInROI(m, roi.ROITxtAutoAndIcon, domain.MatchOption{
-		Path: prefix + ".txt_auto_and_icon",
-		// Th:       0.01,
-		// PrintVal: true,
-	})
-
-	if !(foundTxtAuto && foundBtnBack) {
-		return false
-	}
-	b.log.Infof("dialog detected")
-	b.screen.MouseMoveAndClickByPoint(roi.PtContinue)
-	waitMs(600)
-	return true
 }
 
 func waitMs(v int) {

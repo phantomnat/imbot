@@ -7,11 +7,10 @@ var (
 	StartState   BotState = "start"
 	EndState     BotState = "end"
 
-	DoQuest BotState = "do-quest"
-
 	StateExecuteTask     BotState = "execute_task"
 	StateExitCurrentTask BotState = "exit_current_task"
 
+	StateDoMainStoryQuest       BotState = "do_main_story_quest"
 	StateDoAreaExplorationQuest BotState = "do_area_exploration_quest"
 	StateDoMonsterStoryQuest    BotState = "do_monster_story_quest"
 	StateDoRuneCombination      BotState = "do_rune_combination"

@@ -361,12 +361,16 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 
 		t.status.RunesCount[runeSet] = len(runes)
 
-		if len(runes) < t.status.RuneLimit[runeSet] {
+		if len(runes) == 0 && time.Since(t.StateChangedAt).Seconds() < 2{
+			// retry for two seconds
+			return
+		} else if len(runes) < t.status.RuneLimit[runeSet] {
 			// try new rune choice
 			t.SetState(stateConfigStep)
 			return
 		}
 
+		// TODO: ensure that we click the rune
 		for i := 0; i < t.status.RuneLimit[runeSet]; i++ {
 			pt := t.GetPtWithROI(roi.RuneAlchemy.RuneCombination.RuneList, runes[i])
 			t.status.RuneCount++
