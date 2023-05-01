@@ -17,6 +17,7 @@ import (
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	fishing "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/fishing"
 	main_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/main_story"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
@@ -58,6 +59,7 @@ type SummonersWar struct {
 	taskMainStory       domain.Task
 	taskAreaExploration domain.Task
 	taskMonsterStory    domain.Task
+	taskFishing         domain.Task
 }
 
 var _ domain.Game = (*SummonersWar)(nil)
@@ -156,6 +158,9 @@ func (b *SummonersWar) InitTasks() {
 	if b.setting.MonsterStory != nil {
 		b.taskMonsterStory = monster_story.NewMonsterStory(0, b, *b.setting.MonsterStory)
 	}
+	if b.setting.Fishing != nil {
+		b.taskFishing = fishing.NewFishing(b, b.setting.Fishing)
+	}
 
 	b.tasks = make([]domain.Task, 0, len(b.setting.Tasks))
 	b.tasksByName = make(map[string]domain.Task, len(b.setting.Tasks))
@@ -239,6 +244,8 @@ func (b *SummonersWar) handleState() {
 			b.SetState(StateDoAreaExplorationQuest)
 		case b.setting.MonsterStory != nil && b.setting.MonsterStory.Enable:
 			b.SetState(StateDoMonsterStoryQuest)
+		case b.setting.Fishing != nil && b.setting.Fishing.Enable:
+			b.SetState(StateDoFishing)
 		default:
 			b.SetState(StateExecuteTask)
 		}
@@ -249,6 +256,8 @@ func (b *SummonersWar) handleState() {
 		b.taskAreaExploration.Do(m)
 	case StateDoMonsterStoryQuest:
 		b.taskMonsterStory.Do(m)
+	case StateDoFishing:
+		b.taskFishing.Do(m)
 
 	case StateExecuteTask:
 		// check all tasks

@@ -62,6 +62,13 @@ var (
 		PtBasicAttack  image.Point
 
 		PtMinimap image.Point
+
+		// monsters and summoners
+		Monster1Skills [2]image.Rectangle
+		Monster2Skills [2]image.Rectangle
+		SummonerSkills [3]image.Rectangle
+
+		PtSoulLinkSkills [2]image.Point
 	}{
 		CoinIcon:    Rect(517, 15, 37, 38),
 		CrystalIcon: Rect(646, 13, 36, 41),
@@ -71,6 +78,25 @@ var (
 		PtBasicAttack:  Pt(1160, 600),
 
 		PtMinimap: Pt(180, 100),
+
+		// monsters and summoners
+		Monster1Skills: [2]image.Rectangle{
+			Rect(1101, 195, 38, 38),
+			Rect(1154, 195, 38, 38),
+		},
+		Monster2Skills: [2]image.Rectangle{
+			Rect(1101, 268, 38, 38),
+			Rect(1154, 268, 38, 38),
+		},
+		SummonerSkills: [3]image.Rectangle{
+			Rect(1015, 558, 60, 60),
+			Rect(1045, 484, 60, 60),
+			Rect(1118, 450, 60, 60),
+		},
+		PtSoulLinkSkills: [2]image.Point{
+			Pt(1065, 360),
+			Pt(1150, 360),
+		},
 	}
 
 	// Main menu
@@ -253,6 +279,12 @@ var (
 				Pt(790, 510),
 			},
 		},
+	}
+
+	Fishing = struct {
+		Icons image.Rectangle
+	}{
+		Icons: Rect(416, 500, 450, 110),
 	}
 )
 

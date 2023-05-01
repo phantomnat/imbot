@@ -7,14 +7,16 @@ import (
 )
 
 type MatchOption struct {
-	Path      string
-	Mask      *gocv.Mat
-	HasMask   bool
-	Th        float32
-	PrintVal  bool
+	Path     string
+	Mask     *gocv.Mat
+	HasMask  bool
+	Th       float32
+	PrintVal bool
 }
 
 type ImageManager interface {
+	Get(path string) (ok bool, mat *gocv.Mat)
+
 	MatchWithCenterROI(src gocv.Mat, opt MatchOption) (bool, image.Point)
 
 	MatchPoint(src gocv.Mat, opt MatchOption) (bool, image.Point)

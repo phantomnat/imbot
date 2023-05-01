@@ -1,70 +1,23 @@
 # emu config
-
-emu: bluestack 
-# emu: mumuwa
+# emu: bluestack 
+emu: mumu
 # adbPort: 
 
-
-# bot config
-
-# mode: storyQuest
-# mode: explorationQuest
-mode: monsterStory
-
 mainStory:
-  enable: false
   # enable: true
+  enable: false
 
 areaExploration:
   # enable: true
   enable: false
 
 monsterStory:
-#   enable: true
+  # enable: true
   enable: false
 
-# energy - HP
-# guard  - DEF
-# blade  - CRI rate
-# rage   - CRI dmg
-# fatal  - ATK
-# swift  - ATK SPD
-# focus  - Acc
-# endure - RES
-# foresight - Evasion
-# assemble - Precision
-# runeCombination:
-#   enable: true
-#   steps:
-#     - runeSet: [swift, foresight] # ensure mixes
-#       stars: 4
-#     - runeSet: [blade]
-#       stars: 4
-#     - runeSet: [rage]
-#       stars: 4
-#     - runeSet: [energy]
-#       stars: 4
-#     - runeSet: [guard]
-#       stars: 4
-#     - runeSet: [fatal]
-#       stars: 4
-
-    #   slots: [1]
-    # - runeSet: [swift, foresight]
-    #   slots: [1,2]
-    # - runeSet: [swift, foresight]
-    #   slots: [1,2,3]
-    # - runeSet: [swift, foresight]
-    #   slots: [1,2,3,4]
-    # - runeSet: [swift, foresight]
-    #   slots: [1,2,3,4,5]
-    # - runeSet: [swift, foresight]
-    #   slots: [1,2,3,4,5,6]
-    # - set: [energy]
-    # - set: [guard]
-    # - set: [blade]
-    # - set: [rage]
-    # - set: [fatal]
+fishing:
+  enable: true
+  # enable: false
 
 # pvp
 # every 30 minutes
@@ -106,7 +59,11 @@ tasks:
     enable: true
     Cooldown: 60m
     steps:
-      - runeSet: [swift, foresight] # ensure mixes
+      # - runeSet: [foresight, swift] # ensure mixes
+      #   stars: 4
+      - runeSet: [swift] # ensure mixes
+        stars: 4
+      - runeSet: [foresight] # ensure mixes
         stars: 4
       - runeSet: [endure, assemble] # ensure mixes
         stars: 4

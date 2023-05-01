@@ -7,8 +7,9 @@ import (
 	"sigs.k8s.io/yaml"
 
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
-	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
-	"github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
+	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
+	fishing "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/fishing"
 	main_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/main_story"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
@@ -36,6 +37,7 @@ type Setting struct {
 	MainStory       *main_story.TaskSetting
 	AreaExploration *area_exploration.TaskSetting
 	MonsterStory    *monster_story.TaskSetting
+	Fishing         *fishing.TaskSetting
 
 	Tasks []TaskSetting
 }

@@ -129,6 +129,7 @@ func (t *task) Do(m gocv.Mat) bool {
 				tasks.WithPath(prefix, "btn_ok"),
 				tasks.WithROI(roi.ROIMonsterStory.ModalStartStoryButtons),
 				tasks.WithClick(),
+				tasks.WithNextState(domain.TaskStateBegin),
 			) {
 
 			}

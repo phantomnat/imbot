@@ -14,6 +14,7 @@ var (
 	StateDoAreaExplorationQuest BotState = "do_area_exploration_quest"
 	StateDoMonsterStoryQuest    BotState = "do_monster_story_quest"
 	StateDoRuneCombination      BotState = "do_rune_combination"
+	StateDoFishing              BotState = "do_fishing"
 )
 
 const (
