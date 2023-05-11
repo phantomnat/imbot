@@ -1,5 +1,154 @@
-
-repeatQuest:
-  doneAt: <time>
-  count: 0
-  resetWithCrystalCount: 0
+Names:
+  auto_farm:
+    LastMoving: "2023-05-11T09:42:27.7671501+07:00"
+    NextExecution: "2023-05-11T09:42:45.844255+07:00"
+    NextReset: "0001-01-01T00:00:00Z"
+    State: 9999
+  challenge_arena:
+    LastExecuted: "0001-01-01T00:00:00Z"
+    Name: challenge_arena
+    NextExecution: "2023-05-09T22:04:40.2400139+07:00"
+    NextReset: "2023-05-10T12:00:00+07:00"
+    PointIdx: 4
+    Points:
+    - X: 591
+      "Y": 86
+    - X: 591
+      "Y": 213
+    - X: 591
+      "Y": 340
+    - X: 591
+      "Y": 467
+    Repeat: 3
+    State: 0
+    Stats:
+    - Date: "2023-05-09T12:00:00+07:00"
+      QuickBattle: 20
+      Refresh: 17
+    - Date: "2023-05-08T10:00:00+07:00"
+      QuickBattle: 18
+      Refresh: 16
+    - Date: "2023-05-07T05:00:00+07:00"
+      QuickBattle: 19
+      Refresh: 21
+    - Date: "2023-05-04T21:00:00+07:00"
+      QuickBattle: 34
+      Refresh: 21
+  rune_combination:
+    CurrentRuneSet: focus
+    CurrentStars: 4
+    LastRuneSet: focus
+    LastStars: 4
+    NextExecution: "2023-05-11T10:15:08.7348735+07:00"
+    NextReset: "2023-04-28T00:00:00+07:00"
+    RuneChoices: null
+    RuneCount: 0
+    RuneLimit:
+      focus: 3
+    RunesCount:
+      assemble: 1
+      endure: 1
+      energy: 2
+      fatal: 2
+      focus: 2
+      foresight: 19
+      guard: 0
+      swift: 20
+    State: 0
+    Stats:
+    - CombineCount: 357
+      Date: "2023-05-11T00:00:00+07:00"
+      FiveStarRunes: 44
+      FourStarRunes: 312
+      SixStarRunes: 0
+    - CombineCount: 927
+      Date: "2023-05-10T00:00:00+07:00"
+      FiveStarRunes: 89
+      FourStarRunes: 832
+      SixStarRunes: 0
+    - CombineCount: 895
+      Date: "2023-05-09T00:00:00+07:00"
+      FiveStarRunes: 96
+      FourStarRunes: 796
+      SixStarRunes: 0
+    - CombineCount: 840
+      Date: "2023-05-08T00:00:00+07:00"
+      FiveStarRunes: 90
+      FourStarRunes: 749
+      SixStarRunes: 0
+    - CombineCount: 532
+      Date: "2023-05-07T00:00:00+07:00"
+      FiveStarRunes: 53
+      FourStarRunes: 476
+      SixStarRunes: 0
+    - CombineCount: 294
+      Date: "2023-05-06T00:00:00+07:00"
+      FiveStarRunes: 31
+      FourStarRunes: 261
+      SixStarRunes: 0
+    - CombineCount: 335
+      Date: "2023-05-05T00:00:00+07:00"
+      FiveStarRunes: 29
+      FourStarRunes: 303
+      SixStarRunes: 0
+    - CombineCount: 654
+      Date: "2023-05-03T00:00:00+07:00"
+      FiveStarRunes: 60
+      FourStarRunes: 592
+      SixStarRunes: 0
+    - CombineCount: 492
+      Date: "2023-05-02T00:00:00+07:00"
+      FiveStarRunes: 43
+      FourStarRunes: 448
+      SixStarRunes: 0
+    - CombineCount: 589
+      Date: "2023-05-01T00:00:00+07:00"
+      FiveStarRunes: 44
+      FourStarRunes: 543
+      SixStarRunes: 0
+    - CombineCount: 338
+      Date: "2023-04-29T00:00:00+07:00"
+      FiveStarRunes: 34
+      FourStarRunes: 304
+      SixStarRunes: 0
+    - CombineCount: 559
+      Date: "2023-04-28T00:00:00+07:00"
+      FiveStarRunes: 57
+      FourStarRunes: 500
+      SixStarRunes: 0
+    - CombineCount: 449
+      Date: "2023-04-27T00:00:00+07:00"
+      FiveStarRunes: 45
+      FourStarRunes: 398
+      SixStarRunes: 0
+    - CombineCount: 234
+      Date: "2023-04-26T07:00:00+07:00"
+      FiveStarRunes: 32
+      FourStarRunes: 200
+      SixStarRunes: 0
+    StepIdx: 0
+tasks:
+- LastExecuted: "0001-01-01T00:00:00Z"
+  Name: challenge_arena
+  NextExecuted: "2023-04-25T07:35:20.7367293+07:00"
+  NextReset: "2023-04-26T00:00:00+07:00"
+  PointIdx: 1
+  Points:
+  - X: 591
+    "Y": 86
+  - X: 591
+    "Y": 340
+  - X: 591
+    "Y": 467
+  Repeat: 1
+  Stats:
+  - Date: "2023-04-25T00:00:00+07:00"
+    QuickBattle: 24
+    Refresh: 14
+  - Date: "2023-04-24T00:00:00+07:00"
+    QuickBattle: 20
+    Refresh: 8
+  - Date: "2023-04-23T00:00:00+07:00"
+    QuickBattle: 12
+    Refresh: 8
+- null

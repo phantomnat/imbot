@@ -11,13 +11,12 @@
 
 - ### Main quest
   - [x] improve active quest tab check
-  - [ ] convert to task
-  - [ ] improve main quest (yellow) check
+  - [x] convert to task
+  - [x] improve main quest (yellow) check
 
 - ### exploration quest 
   - [x] convert to task
   - [x] improve exploration quest (blue) check
-  - [ ] ?
 
 - ### auto battle
   - [x] move to boss
@@ -26,6 +25,13 @@
   - [ ] move channel
   - [ ] move to boss from book
   - [x] enable auto battle
+
+- ### auto sell runes
+  - [ ] move to town
+  - [ ] move to general shop
+  - [ ] sell runes
+  - [ ] open book
+  - [ ] move to monster
 
 - ### rune combination
   - [ ] 5 stars hero (purple)

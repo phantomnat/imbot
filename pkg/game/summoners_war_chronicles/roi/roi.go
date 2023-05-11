@@ -187,7 +187,7 @@ var (
 		PtStartDrag image.Point
 		PtStopDrag  image.Point
 
-		// refresh list dialog
+		// Refresh list dialog
 		RefreshDialog            image.Rectangle
 		PtCloseRefreshListDialog image.Point
 
@@ -197,6 +197,11 @@ var (
 		// Victory Dialog
 		VictoryReward  image.Rectangle
 		PtVictoryOKBtn image.Point
+
+		// Recharge
+		RechargeTicket   image.Rectangle
+		PtCancelRecharge image.Point
+		PtRecharge       image.Point
 	}{
 		ChooseOpponent: Rect(510, 182, 736, 535),
 
@@ -212,11 +217,19 @@ var (
 
 		VictoryReward:  Rect(522, 368, 235, 133),
 		PtVictoryOKBtn: Pt(640, 590),
+
+		RechargeTicket:   Rect(459, 163, 364, 45),
+		PtCancelRecharge: Pt(540, 490),
+		PtRecharge:       Pt(760, 490),
 	}
 
 	Rune = struct {
+		RuneCapacity image.Rectangle
+
 		PtRuneAlchemy image.Point
 	}{
+		RuneCapacity: Rect(1185, 612, 28, 1),
+
 		PtRuneAlchemy: Pt(930, 660),
 	}
 	RuneAlchemy = struct {

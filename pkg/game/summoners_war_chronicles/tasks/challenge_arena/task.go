@@ -295,22 +295,22 @@ func (t *task) Do(m gocv.Mat) bool {
 		}
 
 	case stateDoQuickBattle:
-		if t.SearchROI(m,
+		switch {
+		case t.SearchROI(m,
 			tasks.WithPath(prefixChallengeArena, "btn_quick_battle"),
 			tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),
 			tasks.WithNextState(stateWaitForQuickBattle),
 			tasks.WithClick(),
 			tasks.WithWaitMs(2000),
-		) {
+		):
 			// do quick battle
 			t.status.Stats[0].QuickBattle++
 			t.SaveStatus()
-
-		} else if t.SearchROI(m,
+		case t.SearchROI(m,
 			tasks.WithPath(prefixChallengeArena, "btn_quick_battle_disable"),
 			tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),
 			tasks.WithNoWait(),
-		) {
+		):
 			// back and try again
 			if t.SearchROI(m,
 				tasks.WithPath(prefixChallengeArena, "btn_battle_start"),

@@ -13,7 +13,6 @@ import (
 	"github.com/phantomnat/imbot/pkg/domain"
 	"github.com/phantomnat/imbot/pkg/im"
 	"github.com/phantomnat/imbot/pkg/screen/mumu"
-
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
