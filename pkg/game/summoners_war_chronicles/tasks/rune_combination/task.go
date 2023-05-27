@@ -346,7 +346,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 			t.SetState(statePickRune)
 
 		default:
-			t.Manager.ClickPt(roi.RuneAlchemy.RuneCombination.PtSimpleSetting)
+			t.Manager.ClickPt(roi.RuneAlchemy.RuneCombination.PtSetting)
 			t.WaitMs(800)
 		}
 
@@ -361,7 +361,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 
 		t.status.RunesCount[runeSet] = len(runes)
 
-		if len(runes) == 0 && time.Since(t.StateChangedAt).Seconds() < 2{
+		if len(runes) == 0 && time.Since(t.StateChangedAt).Seconds() < 2 {
 			// retry for two seconds
 			return
 		} else if len(runes) < t.status.RuneLimit[runeSet] {
@@ -370,12 +370,18 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 			return
 		}
 
-		// TODO: ensure that we click the rune
-		for i := 0; i < t.status.RuneLimit[runeSet]; i++ {
-			pt := t.GetPtWithROI(roi.RuneAlchemy.RuneCombination.RuneList, runes[i])
-			t.status.RuneCount++
-			t.Manager.Click(pt.X+50, pt.Y+50)
+		if t.status.RuneChoices == nil {
+			t.Manager.ClickPt(roi.RuneAlchemy.RuneCombination.PtSelectAll)
 			t.WaitMs(500)
+			t.status.RuneCount += t.status.RuneLimit[runeSet]
+		} else {
+			// TODO: ensure that we click the rune
+			for i := 0; i < t.status.RuneLimit[runeSet]; i++ {
+				pt := t.GetPtWithROI(roi.RuneAlchemy.RuneCombination.RuneList, runes[i])
+				t.status.RuneCount++
+				t.Manager.Click(pt.X+50, pt.Y+50)
+				t.WaitMs(500)
+			}
 		}
 
 		t.status.RuneLimit[runeSet] = 0

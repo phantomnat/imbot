@@ -1,6 +1,7 @@
 package summonerswar
 
 import (
+	"context"
 	"image"
 	"os"
 	"sync"
@@ -11,8 +12,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/phantomnat/imbot/pkg/domain"
-	"github.com/phantomnat/imbot/pkg/im"
-	"github.com/phantomnat/imbot/pkg/screen/mumu"
 	area_exploration "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/area_exploration"
 	auto_farm "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/auto_farm"
 	challenge_arena "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/challenge_arena"
@@ -20,6 +19,8 @@ import (
 	main_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/main_story"
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
+	"github.com/phantomnat/imbot/pkg/im"
+	"github.com/phantomnat/imbot/pkg/screen/mumu"
 )
 
 const (
@@ -63,7 +64,12 @@ type SummonersWar struct {
 
 var _ domain.Game = (*SummonersWar)(nil)
 
-func New(imgManager *im.ImageManager) (*SummonersWar, error) {
+type Option struct {
+	Ctx          context.Context
+	ImageManager *im.ImageManager
+}
+
+func New(o Option) (*SummonersWar, error) {
 	var err error
 	setting, err := LoadSetting(configFile)
 	if err != nil {
@@ -95,7 +101,7 @@ func New(imgManager *im.ImageManager) (*SummonersWar, error) {
 		log:              zap.S().Named("summoners-war-chronicles"),
 		screen:           sc,
 		isRunning:        new(atomic.Bool),
-		im:               imgManager,
+		im:               o.ImageManager,
 		setting:          setting,
 		currentTaskIndex: TaskUnknown,
 	}
@@ -221,6 +227,8 @@ func (b *SummonersWar) Run(done <-chan struct{}) {
 		if oneThirtiethFrameTime > processedTime {
 			time.Sleep(oneThirtiethFrameTime - processedTime)
 		}
+
+		// b.log.Debugf("processed time: %v", processedTime)
 	}
 }
 
@@ -236,29 +244,27 @@ func (b *SummonersWar) handleState() {
 
 	switch b.GetState() {
 	case StartState:
-		switch {
-		case b.setting.MainStory != nil && b.setting.MainStory.Enable:
-			b.SetState(StateDoMainStoryQuest)
-		case b.setting.AreaExploration != nil && b.setting.AreaExploration.Enable:
-			b.SetState(StateDoAreaExplorationQuest)
-		case b.setting.MonsterStory != nil && b.setting.MonsterStory.Enable:
-			b.SetState(StateDoMonsterStoryQuest)
-		case b.setting.Fishing != nil && b.setting.Fishing.Enable:
-			b.SetState(StateDoFishing)
-		default:
-			b.SetState(StateExecuteTask)
-		}
-
-	case StateDoMainStoryQuest:
-		b.taskMainStory.Do(m)
-	case StateDoAreaExplorationQuest:
-		b.taskAreaExploration.Do(m)
-	case StateDoMonsterStoryQuest:
-		b.taskMonsterStory.Do(m)
-	case StateDoFishing:
-		b.taskFishing.Do(m)
+		b.SetState(StateExecuteTask)
 
 	case StateExecuteTask:
+		// TODO: special task need to revise late
+		doSpecialTask := true
+		switch {
+		case b.setting.MainStory != nil && b.setting.MainStory.IsEnabled():
+			b.taskMainStory.Do(m)
+		case b.setting.AreaExploration != nil && b.setting.AreaExploration.IsEnabled():
+			b.taskAreaExploration.Do(m)
+		case b.setting.MonsterStory != nil && b.setting.MonsterStory.IsEnabled():
+			b.taskMonsterStory.Do(m)
+		case b.setting.Fishing != nil && b.setting.Fishing.IsEnabled():
+			b.taskFishing.Do(m)
+		default:
+			doSpecialTask = false
+		}
+		if doSpecialTask {
+			return
+		}
+
 		// check all tasks
 		for i := range b.tasks {
 			task := b.tasks[i]

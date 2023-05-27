@@ -39,6 +39,8 @@ type task struct {
 
 type TaskSetting struct {
 	domain.TaskSettingBase
+
+	Times int `json:"times"`
 }
 
 type TaskStatus struct {
@@ -106,22 +108,14 @@ func (t *task) Do(m gocv.Mat) bool {
 
 	switch t.State {
 	case domain.TaskStateBegin:
-		// load status
-		if t.status.Name == "" {
-			t.status.Name = t.GetName()
-		}
-
 		// check reset
-		if time.Now().After(t.status.NextReset) {
-			// reset
-			today := time.Now().Truncate(time.Hour)
+		t.status.Reset(func(today time.Time) {
 			t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
 			if len(t.status.Stats) > 30 {
 				t.status.Stats = t.status.Stats[:30]
 			}
-			t.status.NextReset = time.Now().Truncate(time.Hour).AddDate(0, 0, 1)
-			t.SaveStatus()
-		}
+		})
+		t.SaveStatus()
 
 		switch {
 		case t.SearchROI(m,
@@ -306,6 +300,7 @@ func (t *task) Do(m gocv.Mat) bool {
 			// do quick battle
 			t.status.Stats[0].QuickBattle++
 			t.SaveStatus()
+
 		case t.SearchROI(m,
 			tasks.WithPath(prefixChallengeArena, "btn_quick_battle_disable"),
 			tasks.WithROI(roi.ChallengeArena.CharSelectionBattleBtns),

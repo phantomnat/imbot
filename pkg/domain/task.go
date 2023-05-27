@@ -50,6 +50,9 @@ type TaskSettingBase struct {
 var _ TaskSetting = (*TaskSettingBase)(nil)
 
 func (t *TaskSettingBase) IsEnabled() bool {
+	if t == nil {
+		return false
+	}
 	return t.Enable
 }
 

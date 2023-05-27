@@ -238,7 +238,9 @@ var (
 	}{
 		PtRuneCombination: Pt(100, 280),
 		RuneCombination: RuneCombination{
-			PtSimpleSetting:        Pt(1040, 105),
+			PtSetting:   Pt(965, 665),
+			PtSelectAll: Pt(1190, 665),
+
 			RuneCombinationButtons: Rect(304, 616, 450, 75),
 			PtDeselectAll:          Pt(400, 650),
 
@@ -249,7 +251,7 @@ var (
 			RuneList: Rect(870, 137, 370, 460),
 
 			CheckRuneCombinationModal: Rect(312, 152, 655, 415),
-			RuneCombinedRune:          Rect(474, 254, 99, 102),
+			RuneCombinedRune:          Rect(439, 254, 134, 102),
 			RuneCombinedButtons:       Rect(387, 594, 507, 79),
 
 			PtReset: Pt(600, 660),
@@ -270,6 +272,9 @@ var (
 				AssembleRuneSet:  Pt(668, 225),
 				DespairRuneSet:   Pt(736, 225),
 				VampireRuneSet:   Pt(804, 225),
+
+				ShieldRuneSet:  Pt(600, 280),
+				DestroyRuneSet: Pt(668, 280),
 			},
 
 			PtRuneSlots: [7]image.Point{
@@ -291,6 +296,9 @@ var (
 				Pt(700, 510),
 				Pt(790, 510),
 			},
+
+			PtHeroRune:      Pt(610, 618),
+			PtLegendaryRune: Pt(700, 618),
 		},
 	}
 
@@ -310,7 +318,8 @@ type MonsterStoryROI struct {
 }
 
 type RuneCombination struct {
-	PtSimpleSetting        image.Point
+	PtSetting              image.Point
+	PtSelectAll            image.Point
 	RuneCombinationButtons image.Rectangle
 	PtDeselectAll          image.Point
 
@@ -334,6 +343,9 @@ type RuneCombination struct {
 
 	// star 1-6
 	PtRuneStars [7]image.Point
+
+	PtHeroRune      image.Point
+	PtLegendaryRune image.Point
 }
 
 type RuneSet string
@@ -353,4 +365,7 @@ const (
 	AssembleRuneSet  RuneSet = "assemble"
 	DespairRuneSet   RuneSet = "despair"
 	VampireRuneSet   RuneSet = "vampire"
+
+	ShieldRuneSet  RuneSet = "shield"
+	DestroyRuneSet RuneSet = "destroy"
 )

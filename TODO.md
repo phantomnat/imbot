@@ -1,5 +1,5 @@
 - ### main screen
-  - [x] check coin and crystal
+  - ✅ check coin and crystal
   - [ ] no coin and crystal when attack monster
 
 - ### Restart emu
@@ -10,21 +10,22 @@
   - [ ] close ads
 
 - ### Main quest
-  - [x] improve active quest tab check
-  - [x] convert to task
-  - [x] improve main quest (yellow) check
+  - ✅ improve active quest tab check
+  - ✅ convert to task
+  - ✅ improve main quest (yellow) check
 
 - ### exploration quest 
-  - [x] convert to task
-  - [x] improve exploration quest (blue) check
+  - ✅ convert to task
+  - ✅ improve exploration quest (blue) check
 
 - ### auto battle
   - [x] move to boss
-    - [x] black ash harpu
+    - ✅ black ash harpu
+    - [ ] other mini bosses
   - [ ] close dialog
   - [ ] move channel
   - [ ] move to boss from book
-  - [x] enable auto battle
+  - ✅ enable auto battle
 
 - ### auto sell runes
   - [ ] move to town
@@ -36,27 +37,39 @@
 - ### rune combination
   - [ ] 5 stars hero (purple)
   - [ ] 5 stars legendary (red)
-  - [x] rune set
-  - [x] mixed
-  - [x] 4 stars
+  - ✅ rune set
+  - ✅ mixed
+  - ✅ 4 stars
 
 - ### challenge arena
   - [ ] revenge
   - [ ] daily limit handle
   - [ ] handle challenge reset
-  - [ ] refresh with crystal
   - [ ] register team
+  - [ ] refresh with crystal
   - [ ] win loss ratio
-  - [x] quick battle
-  - [x] refresh every 30 minutes
-  - [x] daily stats
-  - [x] daily reset
+  - ✅ quick battle
+  - ✅ refresh every 30 minutes
+  - ✅ daily stats
+  - ✅ daily reset
 
 - ### brawl arena
   - [ ] wait and loss
   - [ ] daily limit
 
+- ### Event
+  - [ ] How to make a friend
+  - [ ] Fishing
+  - [ ] World Boss
+
+- ### Hero area
+  - [ ] Farm
+  - [ ] Mini Boss
+  - [ ] Boss
+
 - ### improve adb
     - [ ] have global context and exit the adb when program close
-    - [x] ~~swipe~~ draganddrop
+    - ✅  draganddrop
 
+- ### ❌ Battlefield
+  - [ ] Idle 

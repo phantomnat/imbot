@@ -66,31 +66,7 @@ func (c *ADBClient) RunShell(in string, args ...string) {
 	// start := time.Now()
 	cmd := in + " " + strings.Join(args, " ") + "\n"
 	// c.log.Debugf("sending %s", cmd)
-	io.WriteString(c.sessionWriter, cmd)
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	// defer cancel()
-
-	// a := make([]string, 0, len(args)+4)
-	// a = append(a, "-s", c.deviceURL(), "shell", in)
-	// if len(args) > 0 {
-	// 	a = append(a, args...)
-	// }
-	// cmd := exec.CommandContext(ctx, "adb", a...)
-	// cmd.SysProcAttr = &syscall.SysProcAttr{
-	// 	HideWindow: true,
-	// }
-	// _, _ = cmd.CombinedOutput()
-	// c.log.Debugf("click took %d ms", time.Since(start).Milliseconds())
-	// buf := &bytes.Buffer{}
-	// session := exec.Command("adb", "shell")
-	// session.SysProcAttr.HideWindow = true
-	// session.Stdin = buf
-
-	// session.Start()
-	// go func() {
-	// 	_, _ = io.Copy(os.Stdout, session.Process)
-	// }()
-	// fmt.Fprintf(buf, "")
+	_, _ = io.WriteString(c.sessionWriter, cmd)
 }
 
 func (c *ADBClient) Tap(x, y int) {
