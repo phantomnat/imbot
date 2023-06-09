@@ -34,6 +34,7 @@ dawn_frost = 'dawn frost'
 chicken = 'chicken'
 beef = 'beef'
 lamb = 'lamb'
+meat = 'meat'
 tallades_carapace = 'tallades carapace'
 shoereklys_filament = "shoerekly's filament"
 fire_spirit_heart = 'fire spirit heart'
@@ -45,6 +46,7 @@ raw_drop_items = [
     chicken,
     beef,
     lamb,
+    meat,
 
     magic_core,
     faint_magic_core,
@@ -77,6 +79,7 @@ strawberry = 'strawberry'
 lavender_stem = 'lavender_stem'
 mango = 'mango'
 basil_leaf = 'basil leaf'
+kiwi = 'kiwi'
 raw_gathering_items = [
     # gathering
     branch,
@@ -95,6 +98,7 @@ raw_gathering_items = [
     lavender_stem,
     mango,
     basil_leaf,
+    kiwi,
 ]
 
 # mining
@@ -127,11 +131,17 @@ crab = 'crab'
 blowfish = 'blowfish'
 swallowtail_dart = 'swallowtail dart'
 calm_mackerel = 'calm mackerel'
+mandarin_fish = 'mandarin fish'
+barracuda_fish = 'barracuda fish'
+catfish = 'catfish'
 raw_fishing_items = [
     crab,
     blowfish,
     swallowtail_dart,
     calm_mackerel,
+    mandarin_fish,
+    barracuda_fish,
+    catfish,
 ]
 gold = 'gold'
 raw_currencies = [
@@ -211,11 +221,20 @@ cooking_sub_type_food = 'food'
 
 fried_meat = 'fried meat'
 chamomile_pho = 'chamomile pho'
-mango_sorbet = 'mango_sorbet'
+mango_sorbet = 'mango sorbet'
 premium_swallowtail_dart_dish = 'premium swallowtail dart dish'
-strawberry_pie = 'strawberry_pie'
+strawberry_pie = 'strawberry pie'
 grilled_calm_mackerel = 'grilled calm mackerel'
-crab_gimbap = 'crap gimbap'
+crab_gimbap = 'crab gimbap'
+mandarin_fish_soup = 'mandarin fish soup'
+kiwi_salad = 'kiwi salad'
+apple_bread = 'apple bread'
+barracuda_dish = 'barracuda dish'
+grilled_catfish_skewer = 'grilled catfish skewer'
+apple_fries = 'apple fries'
+ham_sandwich = 'ham sandwich'
+lavender_tea = 'lavender tea'
+basil_tea = 'basil tea'
 
 premium_flour = 'premium flour'
 premium_sugar = 'premium sugar'
@@ -244,9 +263,19 @@ cooking_items = [
     [chamomile_pho, cooking_sub_type_food, {gold: 10_000, chamomile_bud: 10, four_leaf_clover: 3, premium_all_purpose_ingredient: 2, finest_flour: 2}],
     [mango_sorbet, cooking_sub_type_food, {gold: 10_000, ice_mango: 8, unmelted_ice: 5, finest_sugar: 3}],
     [premium_swallowtail_dart_dish, cooking_sub_type_food, {gold: 10_000, sage_leaf: 6, swallowtail_dart: 4, premium_all_purpose_ingredient: 2, finest_salt: 2}],
-    [strawberry_pie, cooking_sub_type_food, {gold: 5000, strawberry: 12, premium_flour: 5, premium_sugar: 3}],
+    [strawberry_pie, cooking_sub_type_food, {gold: 5_000, strawberry: 12, premium_flour: 5, premium_sugar: 3}],
     [grilled_calm_mackerel, cooking_sub_type_food, {gold: 500, calm_mackerel: 5, premium_salt: 3}],
     [crab_gimbap, cooking_sub_type_food, {gold: 10_000, crab: 6, chicken: 5, premium_all_purpose_ingredient: 2, finest_flour: 3}],
+
+    [mandarin_fish_soup, cooking_sub_type_food, {gold: 1_000, salt: 1, mandarin_fish: 2}],
+    [kiwi_salad, cooking_sub_type_food, {gold: 2_000, kiwi: 5, sage_leaf: 3, olive_oil: 1}],
+    [apple_bread, cooking_sub_type_food, {gold: 2_000, apple: 5, flour: 3, sugar: 3}],
+    [barracuda_dish, cooking_sub_type_food, {gold: 1_500, barracuda_fish: 4, salt: 1}],
+    [grilled_catfish_skewer, cooking_sub_type_food, {gold: 2000, catfish:5, salt: 2}],
+    [apple_fries, cooking_sub_type_food, {gold: 2000, apple: 8, flour: 1}],
+    [ham_sandwich, cooking_sub_type_food, {gold: 1000, meat: 3, flour: 1}],
+    [lavender_tea, cooking_sub_type_food, {gold: 1000, lavender_stem: 3, natural_water: 1}],
+    [basil_tea, cooking_sub_type_food, {gold: 1000, basil_leaf: 6, sugar: 1, natural_water: 1}],
 ]
 
 # alchemy
@@ -354,13 +383,25 @@ def recursive_add(name: str, qty: int):
 
 # cooking
 #
-resources[fried_meat].qty = 80
-resources[chamomile_pho].qty = 80
-resources[mango_sorbet].qty = 80
-resources[premium_swallowtail_dart_dish].qty = 80
-resources[strawberry_pie].qty = 80
-resources[crab_gimbap].qty = 80
+# resources[fried_meat].qty = 80
+# resources[chamomile_pho].qty = 80
+# resources[mango_sorbet].qty = 80
+# resources[premium_swallowtail_dart_dish].qty = 80
+# resources[strawberry_pie].qty = 80
+# resources[crab_gimbap].qty = 80
+# resources[grilled_calm_mackerel].qty = 80
 
+# book
+# cooking
+resources[mandarin_fish_soup].qty = 20
+resources[kiwi_salad].qty = 20
+resources[apple_bread].qty = 20
+resources[barracuda_dish].qty = 15
+resources[grilled_catfish_skewer].qty = 15
+resources[apple_fries].qty = 10
+resources[ham_sandwich].qty = 10
+resources[lavender_tea].qty = 10
+resources[basil_tea].qty = 10
 
 for name, resource in resources.items():
     if resource.qty == 0:
