@@ -3,8 +3,10 @@ package mumu
 import (
 	"context"
 	"image"
+	"math/rand"
 	"reflect"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/lxn/win"
@@ -26,6 +28,7 @@ type Screen struct {
 	o          Option
 	ctrlHwnd   win.HWND
 	adbClient  *ADBClient
+	random     *rand.Rand
 }
 
 type Option struct {
@@ -40,6 +43,10 @@ type Option struct {
 	ADBDeviceName string
 }
 
+const (
+	MumuCommand = `C:\MuMu9\emulator\nemu9\EmulatorShell\NemuLauncher.exe -p com.com2us.chronicles.android.google.us.normal --vm_name "" --instance_id ""`
+)
+
 var _ domain.Screen = (*Screen)(nil)
 
 func NewBlueStack(o Option) (*Screen, error) {
@@ -48,9 +55,10 @@ func NewBlueStack(o Option) (*Screen, error) {
 		return nil, errors.Errorf("cannot find window '%s'", o.Title)
 	}
 	s := &Screen{
-		hwnd: hwnd,
-		log:  zap.S().Named("bluestack"),
-		o:    o,
+		hwnd:   hwnd,
+		log:    zap.S().Named("bluestack"),
+		o:      o,
+		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 	s.o.ADBPort = 5555
 
@@ -88,9 +96,10 @@ func NewMumu(o Option) (*Screen, error) {
 		return nil, errors.Errorf("cannot find window '%s'", o.Title)
 	}
 	s := &Screen{
-		hwnd: hwnd,
-		log:  zap.S().Named("mumu"),
-		o:    o,
+		hwnd:   hwnd,
+		log:    zap.S().Named("mumu"),
+		o:      o,
+		random: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 
 	findChild := func(hwnd uintptr, lParam uintptr) uintptr {
@@ -148,23 +157,13 @@ func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
 }
 
 func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
-	hwnd := s.ctrlHwnd
-	if hwnd == 0 {
-		return
-	}
 	s.log.Debugf("click at (%d, %d)", x, y)
 	s.adbClient.Tap(x, y)
+
+	// add jitter
+	time.Sleep(time.Duration(s.random.Intn(100)) * time.Millisecond)
+
 	// s.log.Debugf("click at (%d, %d)", x+s.o.MouseMargin.X, y+s.o.MouseMargin.Y)
-	// win.PostMessage(hwnd,
-	// 	win.WM_LBUTTONDOWN,
-	// 	0,
-	// 	uintptr(win.MAKELONG(uint16(x), uint16(y))))
-	// time.Sleep(10 * time.Millisecond)
-	// win.PostMessage(hwnd,
-	// 	win.WM_LBUTTONUP,
-	// 	0,
-	// 	uintptr(win.MAKELONG(uint16(x), uint16(y))))
-	// time.Sleep(5 * time.Millisecond)
 }
 
 func makeLongFromP(p image.Point) uintptr {

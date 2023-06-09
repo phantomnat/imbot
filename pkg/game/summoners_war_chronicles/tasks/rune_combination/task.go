@@ -38,8 +38,6 @@ type RuneCombineStep struct {
 type TaskStatus struct {
 	domain.TaskStatusBase
 
-	State       domain.TaskState
-	NextReset   time.Time
 	StepIdx     int
 	RuneLimit   map[roi.RuneSet]int
 	RuneChoices []roi.RuneSet
@@ -370,7 +368,7 @@ func (t *task) Do(m gocv.Mat) (triggered bool) {
 			return
 		}
 
-		if t.status.RuneChoices == nil {
+		if t.status.RuneChoices == nil && len(runes) >= 3 {
 			t.Manager.ClickPt(roi.RuneAlchemy.RuneCombination.PtSelectAll)
 			t.WaitMs(500)
 			t.status.RuneCount += t.status.RuneLimit[runeSet]

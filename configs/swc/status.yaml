@@ -1,14 +1,14 @@
 Names:
   auto_farm:
-    LastMoving: "2023-05-11T09:42:27.7671501+07:00"
-    NextExecution: "2023-05-11T09:42:45.844255+07:00"
+    LastMoving: "2023-05-28T13:28:16.1318747+07:00"
+    NextExecution: "2023-05-28T13:28:51.2842025+07:00"
     NextReset: "0001-01-01T00:00:00Z"
     State: 9999
   challenge_arena:
     LastExecuted: "0001-01-01T00:00:00Z"
     Name: challenge_arena
-    NextExecution: "2023-05-09T22:04:40.2400139+07:00"
-    NextReset: "2023-05-10T12:00:00+07:00"
+    NextExecution: "2023-05-28T13:36:22.7159814+07:00"
+    NextReset: "2023-05-29T00:00:00+07:00"
     PointIdx: 4
     Points:
     - X: 591
@@ -22,6 +22,75 @@ Names:
     Repeat: 3
     State: 0
     Stats:
+    - Date: "2023-05-28T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 2
+    - Date: "2023-05-28T00:00:00+07:00"
+      QuickBattle: 28
+      Refresh: 21
+    - Date: "2023-05-28T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 1
+    - Date: "2023-05-26T00:00:00+07:00"
+      QuickBattle: 1
+      Refresh: 1
+    - Date: "2023-05-25T00:00:00+07:00"
+      QuickBattle: 2
+      Refresh: 2
+    - Date: "2023-05-24T00:00:00+07:00"
+      QuickBattle: 6
+      Refresh: 8
+    - Date: "2023-05-24T00:00:00+07:00"
+      QuickBattle: 1
+      Refresh: 3
+    - Date: "2023-05-24T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 1
+    - Date: "2023-05-24T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-24T00:00:00+07:00"
+      QuickBattle: 7
+      Refresh: 6
+    - Date: "2023-05-23T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 1
+    - Date: "2023-05-23T00:00:00+07:00"
+      QuickBattle: 25
+      Refresh: 18
+    - Date: "2023-05-23T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 1
+    - Date: "2023-05-23T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 7
+      Refresh: 5
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 0
+      Refresh: 0
+    - Date: "2023-05-19T00:00:00+07:00"
+      QuickBattle: 3
+      Refresh: 2
+    - Date: "2023-05-17T00:00:00+07:00"
+      QuickBattle: 26
+      Refresh: 13
+    - Date: "2023-05-15T10:00:00+07:00"
+      QuickBattle: 21
+      Refresh: 17
+    - Date: "2023-05-13T19:00:00+07:00"
+      QuickBattle: 20
+      Refresh: 16
     - Date: "2023-05-09T12:00:00+07:00"
       QuickBattle: 20
       Refresh: 17
@@ -35,27 +104,93 @@ Names:
       QuickBattle: 34
       Refresh: 21
   rune_combination:
-    CurrentRuneSet: focus
+    CurrentRuneSet: rage
     CurrentStars: 4
-    LastRuneSet: focus
+    LastRuneSet: rage
     LastStars: 4
-    NextExecution: "2023-05-11T10:15:08.7348735+07:00"
-    NextReset: "2023-04-28T00:00:00+07:00"
+    NextExecution: "2023-05-28T14:11:14.9530821+07:00"
+    NextReset: "2023-05-29T00:00:00+07:00"
     RuneChoices: null
     RuneCount: 0
     RuneLimit:
-      focus: 3
+      rage: 3
     RunesCount:
-      assemble: 1
-      endure: 1
-      energy: 2
-      fatal: 2
+      assemble: 2
+      blade: 1
+      despair: 1
+      destroy: 3
+      endure: 0
+      energy: 1
+      fatal: 1
       focus: 2
-      foresight: 19
-      guard: 0
-      swift: 20
+      foresight: 0
+      guard: 2
+      rage: 1
+      shield: 0
+      swift: 2
+      vampire: 4
     State: 0
     Stats:
+    - CombineCount: 537
+      Date: "2023-05-28T00:00:00+07:00"
+      FiveStarRunes: 49
+      FourStarRunes: 487
+      SixStarRunes: 0
+    - CombineCount: 3
+      Date: "2023-05-26T00:00:00+07:00"
+      FiveStarRunes: 1
+      FourStarRunes: 1
+      SixStarRunes: 0
+    - CombineCount: 31
+      Date: "2023-05-25T00:00:00+07:00"
+      FiveStarRunes: 1
+      FourStarRunes: 30
+      SixStarRunes: 0
+    - CombineCount: 767
+      Date: "2023-05-24T00:00:00+07:00"
+      FiveStarRunes: 77
+      FourStarRunes: 685
+      SixStarRunes: 0
+    - CombineCount: 575
+      Date: "2023-05-23T00:00:00+07:00"
+      FiveStarRunes: 47
+      FourStarRunes: 422
+      SixStarRunes: 0
+    - CombineCount: 27
+      Date: "2023-05-19T00:00:00+07:00"
+      FiveStarRunes: 0
+      FourStarRunes: 0
+      SixStarRunes: 0
+    - CombineCount: 471
+      Date: "2023-05-18T00:00:00+07:00"
+      FiveStarRunes: 54
+      FourStarRunes: 416
+      SixStarRunes: 0
+    - CombineCount: 296
+      Date: "2023-05-17T00:00:00+07:00"
+      FiveStarRunes: 38
+      FourStarRunes: 256
+      SixStarRunes: 0
+    - CombineCount: 1190
+      Date: "2023-05-16T00:00:00+07:00"
+      FiveStarRunes: 112
+      FourStarRunes: 1076
+      SixStarRunes: 0
+    - CombineCount: 900
+      Date: "2023-05-15T00:00:00+07:00"
+      FiveStarRunes: 83
+      FourStarRunes: 815
+      SixStarRunes: 0
+    - CombineCount: 227
+      Date: "2023-05-14T00:00:00+07:00"
+      FiveStarRunes: 25
+      FourStarRunes: 202
+      SixStarRunes: 0
+    - CombineCount: 185
+      Date: "2023-05-13T00:00:00+07:00"
+      FiveStarRunes: 14
+      FourStarRunes: 170
+      SixStarRunes: 0
     - CombineCount: 357
       Date: "2023-05-11T00:00:00+07:00"
       FiveStarRunes: 44

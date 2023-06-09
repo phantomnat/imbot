@@ -1,24 +1,21 @@
 # emu config
 # emu: bluestack 
 emu: mumu
+# emu: adb
 # emu: hive
-# adbPort: 
+# adbPort: 7555
 
 mainStory:
-  # enable: true
-  # enable: false
+#  enable: true
 
 areaExploration:
-  enable: true
-  # enable: false
-
+#   enable: true
+#
 monsterStory:
-  # enable: true
-  # enable: false
+#   enable: true
 
 fishing:
-  # enable: true
-  # enable: false
+  enable: true
 
 # pvp
 # every 30 minutes
@@ -28,22 +25,26 @@ fishing:
 # Path of growth
 # 6 times per day
 # reset with crystal
+# C:\MuMu9\emulator\nemu9\EmulatorShell\NemuLauncher.exe -p com.com2us.chronicles.android.google.us.normal --vm_name "" --instance_id ""
 
 resetAt: 00:00
 
 tasks:
 - challengeArena:
-    # enable: true
+    enable: true
+#    times: 10
 
-- repeatQuest:
-    enable: false
-    resetWithCrystalPerDay: 2
-    map: rudelin # tesca, ayah, flurence, rukurangma, kontana
-    rewardTicket: pathOfGrowth # essenceDungeon, challengeArena
+- brawlArena:
+#    enable: true
+    times: 4
 
-# - brawlArena:
-#     enable: true
-#     times: 5
+#- repeatQuest:
+##    enable: true
+#    resetWithCrystalPerDay: 2
+#    map: rukurangma #, kontana
+#    rewardTicket: pathOfGrowth # essenceDungeon, challengeArena
+
+
 
 # energy - HP
 # guard  - DEF
@@ -69,10 +70,10 @@ tasks:
         stars: 4
       - runeSet: [endure, assemble] # ensure mixes
         stars: 4
-      # - runeSet: [blade]
-      #   stars: 4
-      # - runeSet: [rage]
-      #   stars: 4
+      - runeSet: [shield, destroy] # ensure mixes
+        stars: 4
+      - runeSet: [despair, vampire]
+        stars: 4
       - runeSet: [energy]
         stars: 4
       - runeSet: [guard]
@@ -81,19 +82,26 @@ tasks:
         stars: 4
       - runeSet: [focus]
         stars: 4
+      - runeSet: [blade]
+        stars: 4
+      - runeSet: [rage]
+        stars: 4
 
+# wait until rune is full or 90%
+#- checkRuneCapacity:
+#    enable: true
+#    nextTask: runeSelling
+
+# go to home
+# sell runes
+# go back to map
 # - runeSelling:
 #     enable: true
-#     checkInterval: 5m
 
 - autoFarm:
-    # enable: false
     enable: true
+
     # black_ash_harpu
     miniBoss: black_ash_harpu
     interval: 11s
 
-    # wait until rune is full or 90%
-    # go to home
-    # sell runes
-    # go back to map

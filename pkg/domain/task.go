@@ -63,6 +63,8 @@ type TaskStatus interface {
 	GetNextExecution() time.Time
 	SetNextExecution(next time.Time)
 
+	GetNextReset() time.Time
+	SetNextReset(next time.Time)
 	IsReady() bool
 }
 
@@ -79,6 +81,12 @@ func (t *TaskStatusBase) GetNextExecution() time.Time {
 }
 func (t *TaskStatusBase) SetNextExecution(next time.Time) {
 	t.NextExecution = next
+}
+func (t *TaskStatusBase) GetNextReset() time.Time {
+	return t.NextReset
+}
+func (t *TaskStatusBase) SetNextReset(next time.Time) {
+	t.NextReset = next
 }
 func (t *TaskStatusBase) GetState() TaskState {
 	return t.State

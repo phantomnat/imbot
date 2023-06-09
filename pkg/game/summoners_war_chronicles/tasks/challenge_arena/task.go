@@ -47,9 +47,7 @@ type TaskStatus struct {
 	domain.TaskStatusBase
 
 	Name         string
-	State        domain.TaskState
 	LastExecuted time.Time
-	NextReset    time.Time
 	Repeat       int
 	Points       []image.Point
 	PointIdx     int
@@ -87,20 +85,6 @@ func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSettin
 	return t
 }
 
-func (t *task) LoadStatus(in any) {
-	err := t.ConvertTo(in, &t.status)
-	if err != nil {
-		t.Log.Warnf("reset status, cannot the current: %+v", err)
-		t.status = &TaskStatus{}
-	} else {
-		t.SetState(t.status.State)
-	}
-}
-
-func (t *task) GetStatus() any {
-	return t.status
-}
-
 func (t *task) Do(m gocv.Mat) bool {
 	if t.Exiting {
 		// TODO: handle exit request
@@ -109,13 +93,17 @@ func (t *task) Do(m gocv.Mat) bool {
 	switch t.State {
 	case domain.TaskStateBegin:
 		// check reset
-		t.status.Reset(func(today time.Time) {
+		if t.status.Reset(func(today time.Time) {
+			if len(t.status.Stats) > 0 && today.Equal(t.status.Stats[0].Date) {
+				return
+			}
 			t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
 			if len(t.status.Stats) > 30 {
 				t.status.Stats = t.status.Stats[:30]
 			}
-		})
-		t.SaveStatus()
+		}) {
+			t.SaveStatus()
+		}
 
 		switch {
 		case t.SearchROI(m,
