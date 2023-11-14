@@ -28,6 +28,13 @@ type EmuType string
 var (
 	EmuTypeBlueStack EmuType = "bluestack"
 	EmuTypeMumu      EmuType = "mumu"
+	EmuRedfinger     EmuType = "redfinger"
+
+	SupportedEmulators = map[EmuType]struct{}{
+		EmuTypeBlueStack: {},
+		EmuTypeMumu:      {},
+		EmuRedfinger:     {},
+	}
 )
 
 type Setting struct {
@@ -55,9 +62,7 @@ func LoadSetting(fileName string) (Setting, error) {
 	}
 
 	// validate apply default
-	switch s.Emu {
-	case EmuTypeBlueStack, EmuTypeMumu:
-	default:
+	if _, found := SupportedEmulators[s.Emu]; !found {
 		s.Emu = EmuTypeMumu
 	}
 

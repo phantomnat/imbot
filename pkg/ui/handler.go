@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"image"
 	"path/filepath"
 	"strings"
@@ -12,8 +13,9 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"github.com/phantomnat/imbot/pkg/domain"
 	"go.uber.org/zap"
+
+	"github.com/phantomnat/imbot/pkg/domain"
 )
 
 const (
@@ -50,7 +52,15 @@ func New(g domain.Game) *uiHandler {
 	return handler
 }
 
-func (h *uiHandler) Run() {
+func (h *uiHandler) Run(stop <-chan struct{}, cancelFn context.CancelFunc) {
+	h.mainWindow.SetOnClosed(func() {
+		// shutdown
+		cancelFn()
+	})
+	go func() {
+		<-stop
+		h.mainWindow.Close()
+	}()
 	h.mainWindow.ShowAndRun()
 }
 

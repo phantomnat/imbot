@@ -13,37 +13,35 @@ import (
 const (
 	stateGoToMainMenu domain.TaskState = iota + 1
 	stateGoToArena
-	stateGoToChallengeArena
-	stateScrollToTop
-	stateRefreshList
-	stateSearchForChallenge
-	stateChallenge
-	stateDoQuickBattle
-	stateWaitForQuickBattle
+	stateGoToBrawlArena
+	stateStartPlay
+	stateWaitForConfirm
+	stateInTheLobby
+	stateWaitBeforeExit
 )
 
 var (
-	resetCoolDown = 30 * time.Minute
-	prefix        = "arena"
-	maxRepeat     = 3
+	prefix = "arena"
 )
 
 type task struct {
 	tasks.BaseTask
-	setting TaskSetting
-	status  TaskStatus
+
+	setting *TaskSetting
+	status  *TaskStatus
 }
 
 type TaskSetting struct {
-	Enable bool
-	Times  int
+	domain.TaskSettingBase
+
+	Times int
 }
 
 type TaskStatus struct {
-	Name         string
-	NextExecuted time.Time
-	NextReset    time.Time
-	Stats        []DailyStats
+	domain.TaskStatusBase
+
+	NextReset time.Time
+	Stats     []DailyStats
 }
 
 type DailyStats struct {
@@ -53,36 +51,26 @@ type DailyStats struct {
 
 var _ domain.Task = (*task)(nil)
 
-func NewChallengeArenaTask(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+func NewBrawlArena(index int, manager domain.Manager, setting TaskSetting) domain.Task {
+	status := &TaskStatus{}
+
 	t := &task{
-		setting: setting,
-		BaseTask: tasks.NewBaseTask(index, manager, setting,
+		setting: &setting,
+		status:  status,
+		BaseTask: tasks.NewBaseTask(
+			manager, &setting, status,
 			map[domain.TaskState]string{
-				stateGoToMainMenu:       "go_to_main_menu",
-				stateGoToArena:          "go_to_arena",
-				stateGoToChallengeArena: "go_to_challenge_arena",
-				stateScrollToTop:        "scroll_to_top",
-				stateRefreshList:        "refresh_list",
-				stateSearchForChallenge: "search_for_challenge",
-				stateChallenge:          "challenge",
-				stateDoQuickBattle:      "do_quick_battle",
-				stateWaitForQuickBattle: "wait_for_quick_battle",
+				stateGoToMainMenu:   "go_to_main_menu",
+				stateGoToArena:      "go_to_arena",
+				stateGoToBrawlArena: "go_to_brawl_arena",
+				//stateStartPlay: "start"
+				//stateWaitForConfirm
+				//stateInTheLobby
+				//stateWaitBeforeExit
 			},
 		),
 	}
 	return t
-}
-
-func (t *task) LoadStatus(in any) {
-	err := t.ConvertTo(in, &t.status)
-	if err != nil {
-		t.Log.Warnf("reset status, cannot the current: %+v", err)
-		t.status = TaskStatus{}
-	}
-}
-
-func (t *task) GetStatus() any {
-	return t.status
 }
 
 func (t *task) Do(m gocv.Mat) bool {
@@ -90,22 +78,25 @@ func (t *task) Do(m gocv.Mat) bool {
 		// TODO: handle exit request
 	}
 
+	// checking event time
+	// checking daily limit
+	// go to arena
+	// go to brawl arena
+	// start challenge
+	// hey this is vsocde , can you skip the scanning please
+	// is it ok right nown
+
 	switch t.State {
 	case domain.TaskStateBegin:
 		// load status
-		if t.status.Name == "" {
-			t.status.Name = t.GetName()
-		}
-
-		// check reset
-		if time.Now().After(t.status.NextReset) {
-			// reset
-			today := time.Now().Truncate(time.Hour)
-			t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
+		if t.status.Reset(func(today time.Time) {
+			if len(t.status.Stats) == 0 || !today.Equal(t.status.Stats[0].Date) {
+				t.status.Stats = append([]DailyStats{{Date: today}}, t.status.Stats...)
+			}
 			if len(t.status.Stats) > 30 {
 				t.status.Stats = t.status.Stats[:30]
 			}
-			t.status.NextReset = time.Now().Truncate(time.Hour).AddDate(0, 0, 1)
+		}) {
 			t.SaveStatus()
 		}
 
@@ -123,6 +114,42 @@ func (t *task) Do(m gocv.Mat) bool {
 			return true
 		}
 
+	case stateGoToMainMenu:
+		// get status for this task
+		// check if ready to do
+		if t.SearchROI(m,
+			tasks.WithROI(roi.MainMenu.OfficialForum),
+			tasks.WithPath("menu", "official_forum"),
+			tasks.WithNextState(stateGoToArena),
+			tasks.WithNoWait(),
+		) {
+			return true
+		}
+
+		t.Manager.ClickPt(roi.PtTopRightMenu)
+		t.WaitMs(1000)
+
+	case stateGoToArena:
+		if t.SearchROI(m,
+			tasks.WithROI(roi.MainMenu.RightSide),
+			tasks.WithPath("menu", "btn_arena"),
+			tasks.WithNextState(stateGoToBrawlArena),
+			tasks.WithClick(),
+			// tasks.WithWaitMs(1000),
+		) {
+			return true
+		}
+
+	case stateGoToBrawlArena:
+		if t.SearchROI(m,
+			tasks.WithROI(roi.Arena.Title),
+			tasks.WithPath("arena", "txt_brawl_arena"),
+			tasks.WithNextState(domain.TaskStateEnd),
+			tasks.WithClick(),
+		) {
+			return true
+		}
+
 	case domain.TaskStateEnd:
 		t.Manager.ClickPt(roi.PtTopRightHomeBtn)
 		t.WaitMs(3000)
@@ -133,13 +160,16 @@ func (t *task) Do(m gocv.Mat) bool {
 	return false
 }
 
-func (t *task) IsReady() bool {
-	if t.status.NextExecuted.IsZero() {
-		return true
-	}
-	return time.Now().After(t.status.NextExecuted)
+func (t *task) Reset() {
+	t.SetState(domain.TaskStateBegin)
 }
 
-func (t *task) SaveStatus() {
-	t.Manager.SaveStatusByIndex(t.Index, t.Name, t.status)
+func (t *task) IsReady() bool {
+	if !t.setting.IsEnabled() {
+		return false
+	}
+	hour := time.Now().Hour()
+	isOnPlayingTime := (hour >= 12 && hour < 13) || (hour >= 16 && hour < 17) || (hour >= 21 && hour < 22)
+	isLimitReached := len(t.status.Stats) == 0 || (len(t.status.Stats) > 0 && t.status.Stats[0].Count >= t.setting.Times)
+	return !isLimitReached && isOnPlayingTime && time.Now().After(t.status.GetNextExecution())
 }

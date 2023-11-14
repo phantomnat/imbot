@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"sigs.k8s.io/yaml"
 
@@ -20,6 +21,7 @@ import (
 	monster_story "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/monster_story"
 	rune_combination "github.com/phantomnat/imbot/pkg/game/summoners_war_chronicles/tasks/rune_combination"
 	"github.com/phantomnat/imbot/pkg/im"
+	"github.com/phantomnat/imbot/pkg/screen/chromedp"
 	"github.com/phantomnat/imbot/pkg/screen/mumu"
 )
 
@@ -92,6 +94,10 @@ func New(o Option) (*SummonersWar, error) {
 		emuOpt.Title = "Chronicles - MuMu Player"
 		emuOpt.ADBPort = 7555
 		sc, err = mumu.NewMumu(emuOpt)
+	case EmuRedfinger:
+		sc, err = chromedp.NewChromeDP(o.Ctx, chromedp.Option{})
+	default:
+		err = errors.New("no emu provided")
 	}
 	if err != nil {
 		return nil, err

@@ -393,15 +393,15 @@ def recursive_add(name: str, qty: int):
 
 # book
 # cooking
-resources[mandarin_fish_soup].qty = 20
-resources[kiwi_salad].qty = 20
-resources[apple_bread].qty = 20
-resources[barracuda_dish].qty = 15
-resources[grilled_catfish_skewer].qty = 15
-resources[apple_fries].qty = 10
-resources[ham_sandwich].qty = 10
-resources[lavender_tea].qty = 10
-resources[basil_tea].qty = 10
+# resources[mandarin_fish_soup].qty = 20
+# resources[kiwi_salad].qty = 20
+# resources[apple_bread].qty = 20
+# resources[barracuda_dish].qty = 15
+# resources[grilled_catfish_skewer].qty = 15
+# resources[apple_fries].qty = 10
+# resources[ham_sandwich].qty = 10
+# resources[lavender_tea].qty = 10
+# resources[basil_tea].qty = 10
 
 for name, resource in resources.items():
     if resource.qty == 0:

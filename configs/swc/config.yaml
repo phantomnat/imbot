@@ -1,6 +1,7 @@
 # emu config
 # emu: bluestack 
-emu: mumu
+#emu: mumu
+emu: redfinger
 # emu: adb
 # emu: hive
 # adbPort: 7555
@@ -9,13 +10,13 @@ mainStory:
 #  enable: true
 
 areaExploration:
-#   enable: true
+   enable: true
 #
 monsterStory:
 #   enable: true
 
 fishing:
-  enable: true
+#  enable: true
 
 # pvp
 # every 30 minutes
@@ -58,7 +59,7 @@ tasks:
 # assemble - Precision
 
 - runeCombination:
-    enable: true
+#    enable: true
     Cooldown: 60m
     steps:
       # - runeSet: [swift] # ensure mixes
@@ -99,7 +100,7 @@ tasks:
 #     enable: true
 
 - autoFarm:
-    enable: true
+#    enable: true
 
     # black_ash_harpu
     miniBoss: black_ash_harpu

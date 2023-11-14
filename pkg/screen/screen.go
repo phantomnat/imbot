@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-vgo/robotgo"
 	"github.com/lxn/win"
-	"github.com/phantomnat/imbot/pkg/domain"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gocv.io/x/gocv"
+
+	"github.com/phantomnat/imbot/pkg/domain"
 )
 
 type imageBuffer struct {
@@ -281,7 +282,7 @@ func (s *Screen) unicodeType(key string) {
 }
 
 func (s *Screen) MouseMoveAndClickByPoint(pt image.Point, args ...any) {
-	// s.MouseMoveAndClick(pt.X, pt.Y, args...)
+	s.MouseMoveAndClick(pt.X, pt.Y, args...)
 }
 
 func (s *Screen) MouseMoveAndClickByRect(roi image.Rectangle, args ...any) {
@@ -300,6 +301,22 @@ func (s *Screen) MouseMoveAndClick(x, y int, args ...any) {
 	// SentMouseEvent(MOUSEEVENTF_LEFTDOWN)
 	// robotgo.MilliSleep(100)
 	// SentMouseEvent(MOUSEEVENTF_LEFTUP)
+
+	// nx := x + s.screenRect.X
+	// ny := y + s.screenRect.Y
+	// s.move(nx, ny)
+	s.log.Debugf("click at (%d, %d)", x, y)
+	// robotgo.Click()
+	win.PostMessage(s.hwnd,
+		win.WM_LBUTTONDOWN,
+		0,
+		uintptr(win.MAKELONG(uint16(x), uint16(y))))
+	time.Sleep(50 * time.Millisecond)
+	win.PostMessage(s.hwnd,
+		win.WM_LBUTTONUP,
+		0,
+		uintptr(win.MAKELONG(uint16(x), uint16(y))))
+	time.Sleep(50 * time.Millisecond)
 }
 
 func (s *Screen) MouseMove(x, y int) {

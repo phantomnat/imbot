@@ -7,21 +7,18 @@ Names:
   challenge_arena:
     LastExecuted: "0001-01-01T00:00:00Z"
     Name: challenge_arena
-    NextExecution: "2023-05-28T13:36:22.7159814+07:00"
-    NextReset: "2023-05-29T00:00:00+07:00"
-    PointIdx: 4
+    NextExecution: "2023-07-04T22:38:33.7337541+07:00"
+    NextReset: "2023-07-05T00:00:00+07:00"
+    PointIdx: 1
     Points:
     - X: 591
       "Y": 86
-    - X: 591
-      "Y": 213
-    - X: 591
-      "Y": 340
-    - X: 591
-      "Y": 467
     Repeat: 3
-    State: 0
+    State: 9999
     Stats:
+    - Date: "2023-07-04T00:00:00+07:00"
+      QuickBattle: 2
+      Refresh: 1
     - Date: "2023-05-28T00:00:00+07:00"
       QuickBattle: 0
       Refresh: 2

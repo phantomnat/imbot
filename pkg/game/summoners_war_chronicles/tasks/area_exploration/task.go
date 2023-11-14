@@ -1,8 +1,6 @@
 package area_exploration
 
 import (
-	"image"
-
 	"gocv.io/x/gocv"
 
 	"github.com/phantomnat/imbot/pkg/domain"
@@ -50,29 +48,29 @@ func (t *task) Do(m gocv.Mat) bool {
 	case domain.TaskStateBegin:
 		switch {
 		case t.Manager.IsOnMainScreen(m):
-			mLeftMenuDetail := m.Region(roi.ROILeftMenuDetail)
-			defer mLeftMenuDetail.Close()
-
-			foundIcon, ptIcon := t.Im.MatchPoint(mLeftMenuDetail, domain.MatchOption{
-				Path: t.Manager.GetImagePath("icon_area_exploration_quest"),
-				// PrintVal: true,
-			})
-			if !foundIcon {
-				t.Manager.ClickPt(roi.PtActiveQuest)
-				t.WaitMs(1000)
-				return true
-			}
-
-			x := roi.ROILeftMenuDetail.Min.X + ptIcon.X
-			y := roi.ROILeftMenuDetail.Min.Y + ptIcon.Y
-			roiQuestText := image.Rect(x-5, y, x+245, y+45)
-			if t.SearchROI(m,
-				tasks.WithROI(roiQuestText),
-				tasks.WithPath("exploration_quest"),
-				tasks.WithClick(),
-			) {
-
-			}
+			//mLeftMenuDetail := m.Region(roi.ROILeftMenuDetail)
+			//defer mLeftMenuDetail.Close()
+			//
+			//foundIcon, ptIcon := t.Im.MatchPoint(mLeftMenuDetail, domain.MatchOption{
+			//	Path:     t.Manager.GetImagePath("icon_area_exploration_quest"),
+			//	PrintVal: true,
+			//})
+			//if !foundIcon {
+			//	t.Manager.ClickPt(roi.PtActiveQuest)
+			//	t.WaitMs(1000)
+			//	return true
+			//}
+			//
+			//x := roi.ROILeftMenuDetail.Min.X + ptIcon.X
+			//y := roi.ROILeftMenuDetail.Min.Y + ptIcon.Y
+			//roiQuestText := image.Rect(x-5, y, x+245, y+45)
+			//if t.SearchROI(m,
+			//	tasks.WithROI(roiQuestText),
+			//	tasks.WithPath("exploration_quest"),
+			//	tasks.WithClick(),
+			//) {
+			//
+			//}
 
 		case t.Manager.IsOnMainMenu(m):
 			t.Manager.ClickPt(roi.PtTopRightHomeBtn)

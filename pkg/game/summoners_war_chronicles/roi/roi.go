@@ -70,8 +70,8 @@ var (
 
 		PtSoulLinkSkills [2]image.Point
 	}{
-		CoinIcon:    Rect(517, 15, 37, 38),
-		CrystalIcon: Rect(646, 13, 36, 41),
+		CoinIcon:    Rect(457, 12, 37, 38),
+		CrystalIcon: Rect(569, 11, 36, 41),
 
 		AutoBattleIcon: Rect(925, 654, 47, 48),
 		PtAutoBattle:   Pt(950, 680),
@@ -115,10 +115,13 @@ var (
 	PtSleepModeWakeTo   = image.Pt(650, 400)
 
 	// Dialog
-	ROIBtnBack        = Rect(17, 12, 34, 40)
+	ROIBtnBack = Rect(17, 12, 34, 40)
+	//ROIBtnBack        = Rect(21, 11, 34, 40)
 	ROITxtAutoAndIcon = Rect(1009, 533, 71, 27)
-	ROITxtAuto        = Rect(1035, 536, 45, 21)
-	PtContinue        = image.Pt(320, 600)
+	//ROITxtAutoAndIcon = Rect(1005, 526, 76, 30)
+	ROITxtAuto   = Rect(1035, 536, 45, 21)
+	PtContinue   = image.Pt(320, 600)
+	PtSkipDialog = image.Pt(1200, 40)
 
 	// Guard Journal
 	ROITopLeft = Rect(0, 0, 300, 60)

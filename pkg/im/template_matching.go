@@ -105,6 +105,9 @@ func (m *ImageManager) applyDefaultMatchOption(opt *domain.MatchOption) {
 	if ok, tpl := m.Get(opt.Path + "_mask"); ok {
 		opt.Mask = tpl
 		opt.HasMask = true
+	} else {
+		opt.Mask = nil
+		opt.HasMask = false
 	}
 }
 
@@ -119,8 +122,14 @@ func (m *ImageManager) matchWithCenterROI(src gocv.Mat, opt domain.MatchOption) 
 		}
 	}
 	for i := 1; i <= 10; i++ {
-		if ok, tpl := m.Get(opt.Path + "_" + strconv.Itoa(i)); ok {
-			if matched, pt := m.templateMatch(&src, tpl, opt); matched {
+		opt2 := domain.MatchOption{
+			Path:     opt.Path + "_" + strconv.Itoa(i),
+			PrintVal: opt.PrintVal,
+			Th:       opt.Th,
+		}
+		m.applyDefaultMatchOption(&opt2)
+		if ok, tpl := m.Get(opt2.Path); ok {
+			if matched, pt := m.templateMatch(&src, tpl, opt2); matched {
 				return true, image.Point{X: pt.X + tpl.Cols()/2, Y: pt.Y + tpl.Rows()/2}
 			}
 		} else {

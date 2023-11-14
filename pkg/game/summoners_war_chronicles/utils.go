@@ -92,9 +92,11 @@ func (b *SummonersWar) GoToMainScreen(m gocv.Mat) (done bool) {
 func (b *SummonersWar) IsOnMainScreen(m gocv.Mat) bool {
 	foundCoin, _ := b.MatchInROI(m, roi.MainScreen.CoinIcon, domain.MatchOption{
 		Path: "icon_coin",
+		//PrintVal: true,
 	})
 	foundCrystal, _ := b.MatchInROI(m, roi.MainScreen.CrystalIcon, domain.MatchOption{
 		Path: "icon_crystal",
+		//PrintVal: true,
 	})
 
 	if foundCoin && foundCrystal {
@@ -117,12 +119,12 @@ func (b *SummonersWar) HandleConversationDialog(m gocv.Mat) bool {
 	foundBtnBack, _ := b.MatchInROI(m, roi.ROIBtnBack, domain.MatchOption{
 		Path: prefix + ".btn_back",
 		// Th:   0.01,
-		// PrintVal: true,
+		//PrintVal: true,
 	})
 	foundTxtAuto, _ := b.MatchInROI(m, roi.ROITxtAutoAndIcon, domain.MatchOption{
 		Path: prefix + ".txt_auto_and_icon",
 		// Th:       0.01,
-		// PrintVal: true,
+		//PrintVal: true,
 	})
 
 	if !(foundTxtAuto && foundBtnBack) {
@@ -130,7 +132,7 @@ func (b *SummonersWar) HandleConversationDialog(m gocv.Mat) bool {
 	}
 
 	b.log.Infof("dialog detected")
-	b.screen.MouseMoveAndClickByPoint(roi.PtContinue)
+	b.screen.MouseMoveAndClickByPoint(roi.PtSkipDialog)
 	b.WaitMs(600)
 	return true
 }

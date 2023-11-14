@@ -1,6 +1,6 @@
 module github.com/phantomnat/imbot
 
-go 1.19
+go 1.20
 
 require (
 	fyne.io/fyne/v2 v2.2.2
